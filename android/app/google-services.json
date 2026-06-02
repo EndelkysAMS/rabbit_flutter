@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "599635020116",
+    "project_id": "rabbit-app-flutter",
+    "storage_bucket": "rabbit-app-flutter.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:599635020116:android:37e97eae918dc90588e0c1",
+        "android_client_info": {
+          "package_name": "com.example.rabbit_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsE8zTkNBB055Jb3o0XmCCKN5Yu7UG_78"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
