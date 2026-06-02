@@ -74,8 +74,31 @@ class _ClientMapBookingInfoPageState extends State<ClientMapBookingInfoPage> {
               TimeAndDistanceValues timeAndDistanceValues =
                   responseTimeAndDistance.data as TimeAndDistanceValues;   
               return ClientMapBookingInfoContent(state, timeAndDistanceValues);
+            } else if (responseTimeAndDistance is ErrorData) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline,
+                          color: Colors.redAccent, size: 48),
+                      const SizedBox(height: 16),
+                      Text(
+                        responseTimeAndDistance.message,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Volver'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
             }
-            return Container();
+            return const Center(child: CircularProgressIndicator());
           },
         ),
       ),
