@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_places_flutter/model/prediction.dart';
 import 'package:rabbit_flutter/src/presentation/pages/client/mapSeeker/bloc/ClientMapSeekerBloc.dart';
@@ -81,6 +82,14 @@ class _ClientMapSeekerPageState extends State<ClientMapSeekerPage> {
                     text: 'Revisar Viaje',
                     width: double.infinity,
                     onPressed: () {
+                      if (state.pickUpLatLng == null ||
+                          state.destinationLatLng == null) {
+                        Fluttertoast.showToast(
+                          msg: 'Selecciona el origen y el destino',
+                          toastLength: Toast.LENGTH_LONG,
+                        );
+                        return;
+                      }
                       Navigator.pushNamed(
                         context,
                         'client/map/booking',

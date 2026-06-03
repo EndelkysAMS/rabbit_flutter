@@ -70,5 +70,9 @@
 	<string>Esta aplicacion requiere acceso a la galeria de fotos</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Esta aplicacion requiere acceso a la camara</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Esta aplicacion necesita acceso a tu ubicacion para mostrar tu posicion y calcular el viaje</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Esta aplicacion necesita acceso a tu ubicacion para mostrar tu posicion y calcular el viaje</string>
 </dict>
 </plist>
