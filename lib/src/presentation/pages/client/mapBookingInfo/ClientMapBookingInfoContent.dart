@@ -10,9 +10,8 @@ import 'package:rabbit_flutter/src/presentation/pages/widgets/DefaultTextField.d
 import 'package:rabbit_flutter/src/presentation/utils/BlocFormItem.dart';
 
 class ClientMapBookingInfoContent extends StatelessWidget {
-
- final ClientMapBookingInfoState state;
-final TimeAndDistanceValues timeAndDistanceValues;
+  final ClientMapBookingInfoState state;
+  final TimeAndDistanceValues timeAndDistanceValues;
 
   const ClientMapBookingInfoContent(this.state, this.timeAndDistanceValues);
 
@@ -35,8 +34,8 @@ final TimeAndDistanceValues timeAndDistanceValues;
 
   Widget _cardBookingInfo(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.49,
-      padding: const EdgeInsets.only(left: 20, right: 20),
+      height: MediaQuery.of(context).size.height * 0.52,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
@@ -45,94 +44,53 @@ final TimeAndDistanceValues timeAndDistanceValues;
         ),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          ListTile(
-            title: const Text(
-              'Recoger en',
-              style: TextStyle(
-                fontSize: 15,
-                color: Color(0xFFFF8000),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            subtitle: Text(
-              state.pickUpDescription,
-              style: const TextStyle(fontSize: 13),
-            ),
-            leading: const Icon(
-              Icons.location_on,
-              color: Color(0xFFFF8000),
+          Container(
+            margin: const EdgeInsets.only(top: 12, bottom: 8),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
-          ListTile(
-            title: const Text(
-              'Dejar en',
-              style: TextStyle(
-                fontSize: 15,
-                color: Color(0xFFFF8000),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            subtitle: Text(
-              state.destinationDescription,
-              style: const TextStyle(fontSize: 13),
-            ),
-            leading: const Icon(
-              Icons.my_location,
-              color: Color(0xFFFF8000),
-            ),
+          _infoRow(
+            icon: Icons.location_on,
+            title: 'Recoger en',
+            subtitle: state.pickUpDescription,
           ),
-          ListTile(
-            title: const Text(
-              'Tiempo y distancia aproximados',
-              style: TextStyle(
-                fontSize: 15,
-                color: Color(0xFFFF8000),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            subtitle: Text(
-              '${timeAndDistanceValues.distance.text} y ${timeAndDistanceValues.duration.text}',
-              style: const TextStyle(fontSize: 13),
-            ),
-            leading: const Icon(
-              Icons.timer,
-              color: Color(0xFFFF8000),
-            ),
+          _divider(),
+          _infoRow(
+            icon: Icons.my_location,
+            title: 'Dejar en',
+            subtitle: state.destinationDescription,
           ),
-          ListTile(
-            title: const Text(
-              'Precios Recomendados',
-              style: TextStyle(
-                fontSize: 15,
-                color: Color(0xFFFF8000),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            subtitle: Text(
-              'Bs. ${timeAndDistanceValues.recommendedValue}',
-              style: const TextStyle(fontSize: 13),
-            ),
-            leading: const Icon(
-              Icons.money,
-              color: Color(0xFFFF8000),
-            ),
+          _divider(),
+          _infoRow(
+            icon: Icons.timer,
+            title: 'Tiempo y distancia aproximados',
+            subtitle: '${timeAndDistanceValues.distance.text} y ${timeAndDistanceValues.duration.text}',
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 15, right: 15),
-            child: DefaultTextField(
-              hintText: 'Ofrece tu Tarifa',
-              icon: Icons.attach_money,
-              keyboardType: TextInputType.phone,
-              onChanged: (text) {
-                context.read<ClientMapBookingInfoBloc>().add(
-                  FareOfferedChanged(fareOffered: BlocFormItem(value: text)),
-                );
-              },
-              validator: (value) {
-                return state.fareOffered.error;
-              },
-            ),
+          _divider(),
+          _infoRow(
+            icon: Icons.monetization_on_outlined,
+            title: 'Precios Recomendados',
+            subtitle: ' ${timeAndDistanceValues.recommendedValue}',
+          ),
+          const SizedBox(height: 12),
+          DefaultTextField(
+            hintText: 'Ofrece tu Tarifa',
+            icon: Icons.attach_money,
+            keyboardType: TextInputType.phone,
+            onChanged: (text) {
+              context.read<ClientMapBookingInfoBloc>().add(
+                FareOfferedChanged(fareOffered: BlocFormItem(value: text)),
+              );
+            },
+            validator: (value) {
+              return state.fareOffered.error;
+            },
           ),
           _actionProfile(
             'Buscar Conductor',
@@ -143,6 +101,56 @@ final TimeAndDistanceValues timeAndDistanceValues;
           ),
         ],
       ),
+    );
+  }
+
+  Widget _infoRow({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: const Color.fromARGB(255, 0, 0, 0), size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color.fromARGB(255, 0, 0, 0),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.black87,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _divider() {
+    return Divider(
+      height: 1,
+      thickness: 0.5,
+      color: Colors.grey[200],
     );
   }
 
@@ -162,7 +170,7 @@ final TimeAndDistanceValues timeAndDistanceValues;
           leading: Container(
             padding: const EdgeInsets.all(10),
             decoration: const BoxDecoration(
-              color: Color(0xFFFF8000),
+              color: Color.fromARGB(255, 0, 0, 0),
               borderRadius: BorderRadius.all(Radius.circular(50)),
             ),
             child: Icon(
@@ -177,14 +185,14 @@ final TimeAndDistanceValues timeAndDistanceValues;
 
   Widget _googleMaps(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.53,
+      height: MediaQuery.of(context).size.height * 0.50,
       child: GoogleMap(
         mapType: MapType.normal,
         initialCameraPosition: state.cameraPosition,
         markers: Set<Marker>.of(state.markers.values),
         polylines: Set<Polyline>.of(state.polylines.values),
         onMapCreated: (GoogleMapController controller) {
-          controller.setMapStyle('[ { "featureType": "all", "elementType": "labels.text.fill", "stylers": [ { "color": "#ffffff" } ] }, { "featureType": "all", "elementType": "labels.text.stroke", "stylers": [ { "color": "#000000" }, { "lightness": 13 } ] }, { "featureType": "administrative", "elementType": "geometry.fill", "stylers": [ { "color": "#000000" } ] }, { "featureType": "administrative", "elementType": "geometry.stroke", "stylers": [ { "color": "#144b53" }, { "lightness": 14 }, { "weight": 1.4 } ] }, { "featureType": "landscape", "elementType": "all", "stylers": [ { "color": "#08304b" } ] }, { "featureType": "poi", "elementType": "geometry", "stylers": [ { "color": "#0c4152" }, { "lightness": 5 } ] }, { "featureType": "road.highway", "elementType": "geometry.fill", "stylers": [ { "color": "#000000" } ] }, { "featureType": "road.highway", "elementType": "geometry.stroke", "stylers": [ { "color": "#0b434f" }, { "lightness": 25 } ] }, { "featureType": "road.arterial", "elementType": "geometry.fill", "stylers": [ { "color": "#000000" } ] }, { "featureType": "road.arterial", "elementType": "geometry.stroke", "stylers": [ { "color": "#0b3d51" }, { "lightness": 16 } ] }, { "featureType": "road.local", "elementType": "geometry", "stylers": [ { "color": "#000000" } ] }, { "featureType": "transit", "elementType": "all", "stylers": [ { "color": "#146474" } ] }, { "featureType": "water", "elementType": "all", "stylers": [ { "color": "#021019" } ] } ]');
+          controller.setMapStyle('[]');
           if (!state.controller!.isCompleted) {
             state.controller?.complete(controller);
           }

@@ -35,14 +35,10 @@ class _DriverRatingTripPageState extends State<DriverRatingTripPage> {
         child: BlocBuilder<DriverRatingTripBloc, DriverRatingTripState>(
           builder: (context, state) {
             return Container(
-                decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                        begin: Alignment.topRight,
-                        end: Alignment.bottomLeft,
-                        colors: [
-                      Color.fromARGB(255, 12, 38, 145),
-                      Color.fromARGB(255, 34, 156, 249),
-                    ])),
+               decoration: const BoxDecoration(
+              color: Color(0xFFFF8000),
+              borderRadius: BorderRadius.all(Radius.circular(50)),
+            ),
                 child: DriverRatingTripContent(state, clientRequestResponse));
           },
         ),

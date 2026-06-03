@@ -19,152 +19,156 @@ class ClientMapTripContent extends StatelessWidget {
       children: [
         _googleMaps(context),
         Align(
-            alignment: Alignment.bottomCenter,
-            child: _cardBookingInfo(context)),
+          alignment: Alignment.bottomCenter,
+          child: _cardBookingInfo(context),
+        ),
       ],
     );
   }
 
   Widget _cardBookingInfo(BuildContext context) {
     return Container(
-        height: MediaQuery.of(context).size.height * 0.46,
-        padding: EdgeInsets.only(left: 20, right: 20),
-        decoration: BoxDecoration(
-            gradient: LinearGradient(
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-                colors: [
-                  Color.fromARGB(255, 255, 255, 255),
-                  Color.fromARGB(255, 186, 186, 186),
-                ]),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(30),
-              topRight: Radius.circular(30),
-            )),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 15),
-            Text(
-              'TU CONDUCTOR',
-              style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                  fontStyle: FontStyle.italic,
-                  color: Colors.blueAccent),
-            ),
-            ListTile(
-              title: Text(
-                '${clientRequest?.driver?.name} ${clientRequest?.driver?.lastname}',
-                style: TextStyle(fontSize: 15),
-              ),
-              subtitle: Text(
-                'Tel: ${clientRequest?.driver?.phone}',
-                style: TextStyle(fontSize: 13),
-              ),
-              trailing: DefaultImageUrl(
-                url: clientRequest?.driver?.image,
-                width: 60,
+      height: MediaQuery.of(context).size.height * 0.46,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
-            ListTile(
-              title: Text(clientRequest?.bike?.brand ?? ''),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          ),
+          const Text(
+            'Tu Conductor',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFFF8000),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${clientRequest?.driver?.name} ${clientRequest?.driver?.lastname}',
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                      'Tel: ${clientRequest?.driver?.phone}',
+                      style: const TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      clientRequest?.bike?.brand ?? '',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                      '${clientRequest?.bike?.color} - ${clientRequest?.bike?.plate}',
+                      style: const TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Llega en ${state.timeAndDistanceValues?.duration.text} Aproximadamente',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFFFF8000),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
                 children: [
-                  Text(
-                      '${clientRequest?.bike?.color} - ${clientRequest?.bike?.plate}'),
-                  Text(
-                    'Llega en ${state.timeAndDistanceValues?.duration.text} Aproximadamente',
-                    style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.blue[900],
-                        fontWeight: FontWeight.bold),
-                  )
+                  DefaultImageUrl(url: clientRequest?.driver?.image, width: 55),
+                  const SizedBox(height: 8),
+                  Image.asset('assets/img/motorbike.png', height: 35, width: 35),
                 ],
               ),
-              trailing: Image.asset(
-                'assets/img/suv.png',
-                height: 60,
-                width: 60,
-              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Divider(height: 1, thickness: 0.5, color: Colors.grey[200]),
+          const SizedBox(height: 8),
+          const Text(
+            'Datos del Viaje',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFFF8000),
             ),
-            SizedBox(height: 10),
-            Text(
-              'DATOS DEL VIAJE',
-              style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                  fontStyle: FontStyle.italic,
-                  color: Colors.blueAccent),
-            ),
-            ListTile(
-              title: Text(
-                'Ubicaciones',
-                style: TextStyle(fontSize: 15),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Desde: ${clientRequest?.pickupDescription}',
-                    style: TextStyle(fontSize: 13),
-                  ),
-                  Text(
-                    'Hasta: ${clientRequest?.destinationDescription}',
-                    style: TextStyle(fontSize: 13),
-                  ),
-                ],
-              ),
-              leading: Icon(Icons.location_on),
-            ),
-            ListTile(
-              title: Text(
-                'Valor del viaje',
-                style: TextStyle(fontSize: 15),
-              ),
-              subtitle: Text(
-                '\$${clientRequest?.fareAssigned}',
-                style: TextStyle(fontSize: 17,
-                    color: Colors.blueAccent,
-                    fontWeight: FontWeight.bold),
-              ),
-              leading: Icon(Icons.money),
-            ),
-          ],
-        ));
+          ),
+          const SizedBox(height: 6),
+          _infoRow(
+            icon: Icons.location_on,
+            title: 'Ubicaciones',
+            subtitle: 'Desde: ${clientRequest?.pickupDescription}\nHasta: ${clientRequest?.destinationDescription}',
+          ),
+          Divider(height: 1, thickness: 0.5, color: Colors.grey[200]),
+          _infoRow(
+            icon: Icons.monetization_on_outlined,
+            title: 'Valor del viaje',
+            subtitle: '${clientRequest?.fareAssigned}',
+            subtitleColor: const Color(0xFFFF8000),
+            subtitleBold: true,
+          ),
+        ],
+      ),
+    );
   }
 
-  Widget _actionProfile(String option, IconData icon, Function() function) {
-    return GestureDetector(
-      onTap: () {
-        function();
-      },
-      child: Container(
-        margin: EdgeInsets.only(left: 10, right: 0, top: 15),
-        child: ListTile(
-          contentPadding: EdgeInsets.zero,
-          title: Text(
-            option,
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          leading: Container(
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-                gradient: LinearGradient(
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                    colors: [
-                      Color.fromARGB(255, 19, 58, 213),
-                      Color.fromARGB(255, 65, 173, 255),
-                    ]),
-                borderRadius: BorderRadius.all(Radius.circular(50))),
-            child: Icon(
-              icon,
-              color: Colors.white,
+  Widget _infoRow({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    Color subtitleColor = Colors.black87,
+    bool subtitleBold = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: const Color(0xFFFF8000), size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: subtitleColor,
+                    fontWeight: subtitleBold ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -178,7 +182,7 @@ class ClientMapTripContent extends StatelessWidget {
         markers: Set<Marker>.of(state.markers.values),
         polylines: Set<Polyline>.of(state.polylines.values),
         onMapCreated: (GoogleMapController controller) {
-          controller.setMapStyle('[]');  
+          controller.setMapStyle('[]');
           if (state.controller != null) {
             if (!state.controller!.isCompleted) {
               state.controller?.complete(controller);

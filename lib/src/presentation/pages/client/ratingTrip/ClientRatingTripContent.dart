@@ -46,7 +46,7 @@ class ClientRatingTripContent extends StatelessWidget {
 
   Widget _textFareValue() {
     return Text(
-      'Bs. ${clientRequestResponse?.fareAssigned}',
+      '${clientRequestResponse?.fareAssigned}',
       style: const TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 35,

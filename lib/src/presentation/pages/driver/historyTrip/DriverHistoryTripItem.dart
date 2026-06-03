@@ -45,7 +45,7 @@ class DriverHistoryTripItem extends StatelessWidget {
   Widget _listTileFarePaid() {
     return ListTile(
       title: Text('Tarifa del viaje'),
-      subtitle: Text('\$${clientRequest.fareAssigned}'),
+      subtitle: Text('${clientRequest.fareAssigned}'),
       trailing: Icon(Icons.attach_money_outlined),
     );
   }

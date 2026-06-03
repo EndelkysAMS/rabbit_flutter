@@ -37,7 +37,7 @@ class ClientMapTripBloc extends Bloc<ClientMapTripEvent, ClientMapTripState> {
 
     on<AddMarkerPickup>((event, emit) async {
       BitmapDescriptor pickUpDescriptor = await geolocatorUseCases.createMarker
-          .run('assets/img/person_location.jpg');
+          .run('assets/img/person_location.png');
       Marker markerPickUp = geolocatorUseCases.getMarker.run(
           'pickup',
           event.lat,
@@ -52,7 +52,7 @@ class ClientMapTripBloc extends Bloc<ClientMapTripEvent, ClientMapTripState> {
 
     on<AddMarkerDestination>((event, emit) async {
       BitmapDescriptor destinationDescriptor =
-          await geolocatorUseCases.createMarker.run('assets/img/red_flag.jpg');
+          await geolocatorUseCases.createMarker.run('assets/img/red_flag.png');
       Marker marker = geolocatorUseCases.getMarker.run('destination', event.lat,
           event.lng, 'Lugar de destino', '', destinationDescriptor);
       emit(state.copyWith(

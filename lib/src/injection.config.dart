@@ -1,5 +1,5 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format width=80
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 // **************************************************************************
 // InjectableConfigGenerator
@@ -61,12 +61,16 @@ import 'package:rabbit_flutter/src/domain/useCases/users/UsersUseCases.dart'
 import 'package:socket_io_client/socket_io_client.dart' as _i414;
 
 extension GetItInjectableX on _i174.GetIt {
-  // initializes the registration of main-scope dependencies inside of GetIt
+// initializes the registration of main-scope dependencies inside of GetIt
   _i174.GetIt init({
     String? environment,
     _i526.EnvironmentFilter? environmentFilter,
   }) {
-    final gh = _i526.GetItHelper(this, environment, environmentFilter);
+    final gh = _i526.GetItHelper(
+      this,
+      environment,
+      environmentFilter,
+    );
     final appModule = _$AppModule();
     gh.factory<_i858.SharefPref>(() => appModule.sharefPref);
     gh.factory<_i414.Socket>(() => appModule.socket);
@@ -74,49 +78,37 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i565.AuthService>(() => appModule.authService);
     gh.factory<_i218.UsersService>(() => appModule.usersService);
     gh.factory<_i156.DriversPositionService>(
-      () => appModule.driversPositionService,
-    );
+        () => appModule.driversPositionService);
     gh.factory<_i394.ClientRequestsService>(
-      () => appModule.clientRequestsService,
-    );
+        () => appModule.clientRequestsService);
     gh.factory<_i959.DriverTripRequestsService>(
-      () => appModule.driverTripRequestsService,
-    );
+        () => appModule.driverTripRequestsService);
     gh.factory<_i691.DriverBikeInfoService>(
-      () => appModule.driverBikeInfoService,
-    );
+        () => appModule.driverBikeInfoService);
     gh.factory<_i972.AuthRepository>(() => appModule.authRepository);
     gh.factory<_i298.UsersRepository>(() => appModule.usersRepository);
     gh.factory<_i307.SocketRepository>(() => appModule.socketRepository);
     gh.factory<_i116.ClientRequestsRepository>(
-      () => appModule.clientRequestsRepository,
-    );
+        () => appModule.clientRequestsRepository);
     gh.factory<_i96.GeolocatorRepository>(() => appModule.geolocatorRepository);
     gh.factory<_i80.DriverPositionRepository>(
-      () => appModule.driversPositionRepository,
-    );
+        () => appModule.driversPositionRepository);
     gh.factory<_i824.DriverTripRequestsRepository>(
-      () => appModule.driverTripRequestsRepository,
-    );
+        () => appModule.driverTripRequestsRepository);
     gh.factory<_i920.DriverBikeInfoRepository>(
-      () => appModule.driverBikeInfoRepository,
-    );
+        () => appModule.driverBikeInfoRepository);
     gh.factory<_i811.AuthUseCases>(() => appModule.authUseCases);
     gh.factory<_i61.UsersUseCases>(() => appModule.usersUseCases);
     gh.factory<_i512.GeolocatorUseCases>(() => appModule.geolocatorUseCases);
     gh.factory<_i458.SocketUseCases>(() => appModule.socketUseCases);
     gh.factory<_i103.DriversPositionUseCases>(
-      () => appModule.driversPositionUseCases,
-    );
+        () => appModule.driversPositionUseCases);
     gh.factory<_i821.ClientRequestsUseCases>(
-      () => appModule.clientRequestsUseCases,
-    );
+        () => appModule.clientRequestsUseCases);
     gh.factory<_i969.DriverTripRequestUseCases>(
-      () => appModule.driverTripRequestUseCases,
-    );
+        () => appModule.driverTripRequestUseCases);
     gh.factory<_i299.DriverBikeInfoUseCases>(
-      () => appModule.driverCarInfoUseCases,
-    );
+        () => appModule.driverCarInfoUseCases);
     return this;
   }
 }

@@ -10,12 +10,12 @@ import 'package:rabbit_flutter/src/presentation/pages/driver/mapTrip/bloc/Driver
 import 'package:rabbit_flutter/src/presentation/pages/widgets/DefaultImageUrl.dart';
 
 class DriverMapTripContent extends StatelessWidget {
-  DriverMapTripState state;
-  ClientRequestResponse? clientRequest;
-  TimeAndDistanceValues? timeAndDistanceValues;
+  final DriverMapTripState state;
+  final ClientRequestResponse? clientRequest;
+  final TimeAndDistanceValues? timeAndDistanceValues;
 
-  DriverMapTripContent(
-      this.state, this.clientRequest, this.timeAndDistanceValues);
+  const DriverMapTripContent(
+      this.state, this.clientRequest, this.timeAndDistanceValues, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,112 +23,117 @@ class DriverMapTripContent extends StatelessWidget {
       children: [
         _googleMaps(context),
         Align(
-            alignment: Alignment.bottomCenter,
-            child: _cardBookingInfo(context)),
+          alignment: Alignment.bottomCenter,
+          child: _cardBookingInfo(context),
+        ),
       ],
     );
   }
 
   Widget _cardBookingInfo(BuildContext context) {
     return Container(
-        height: MediaQuery.of(context).size.height * 0.45,
-        padding: EdgeInsets.only(left: 20, right: 20),
-        decoration: BoxDecoration(
-            gradient: LinearGradient(
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-                colors: [
-                  Color.fromARGB(255, 255, 255, 255),
-                  Color.fromARGB(255, 186, 186, 186),
-                ]),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(30),
-              topRight: Radius.circular(30),
-            )),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 15),
-            Text(
-              'Tu Cliente',
-              style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                  fontStyle: FontStyle.italic,
-                  color: Color(0xFFFF8C00)),
+      height: MediaQuery.of(context).size.height * 0.45,
+      padding: const EdgeInsets.only(left: 20, right: 20),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 15),
+          const Text(
+            'Tu Cliente',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+              fontStyle: FontStyle.italic,
+              color: Color(0xFFFF8000),
             ),
-            ListTile(
-              title: Text(
-                '${clientRequest?.client?.name} ${clientRequest?.client?.lastname}',
-                style: TextStyle(fontSize: 15),
-              ),
-              subtitle: Text(
-                'Tel: ${clientRequest?.client?.phone}',
-                style: TextStyle(fontSize: 13),
-              ),
-              trailing: DefaultImageUrl(
-                url: clientRequest?.client?.image,
-                width: 60,
+          ),
+          ListTile(
+            title: Text(
+              '${clientRequest?.client?.name} ${clientRequest?.client?.lastname}',
+              style: const TextStyle(fontSize: 15),
+            ),
+            subtitle: Text(
+              'Tel: ${clientRequest?.client?.phone}',
+              style: const TextStyle(fontSize: 13),
+            ),
+            trailing: DefaultImageUrl(
+              url: clientRequest?.client?.image,
+              width: 60,
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Datos del Viaje',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+              fontStyle: FontStyle.italic,
+              color: Color(0xFFFF8000),
+            ),
+          ),
+          ListTile(
+            title: const Text(
+              'Ubicaciones',
+              style: TextStyle(fontSize: 15),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Desde: ${clientRequest?.pickupDescription}',
+                  style: const TextStyle(fontSize: 13),
+                ),
+                Text(
+                  'Hasta: ${clientRequest?.destinationDescription}',
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ],
+            ),
+            leading: const Icon(
+              Icons.location_on,
+              color: Color(0xFFFF8000),
+            ),
+          ),
+          ListTile(
+            title: const Text(
+              'Valor del viaje',
+              style: TextStyle(fontSize: 15),
+            ),
+            subtitle: Text(
+              '${clientRequest?.fareAssigned}',
+              style: const TextStyle(
+                fontSize: 17,
+                color: Color(0xFFFF8000),
+                fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 10),
-            Text(
-              'Datos del Viaje',
-              style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                  fontStyle: FontStyle.italic,
-                  color: Color(0xFFFF8C00)),
+            leading: const Icon(
+              Icons.money,
+              color: Color(0xFFFF8000),
             ),
-            ListTile(
-              title: Text(
-                'Ubicaciones',
-                style: TextStyle(fontSize: 15),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Desde: ${clientRequest?.pickupDescription}',
-                    style: TextStyle(fontSize: 13),
-                  ),
-                  Text(
-                    'Hasta: ${clientRequest?.destinationDescription}',
-                    style: TextStyle(fontSize: 13),
-                  ),
-                ],
-              ),
-              leading: Icon(Icons.location_on),
-            ),
-            ListTile(
-              title: Text(
-                'Valor del viaje',
-                style: TextStyle(fontSize: 15),
-              ),
-              subtitle: Text(
-                '\$${clientRequest?.fareAssigned}',
-                style: TextStyle(
-                    fontSize: 17,
-                    color: Color(0xFFFF8C00),
-                    fontWeight: FontWeight.bold),
-              ),
-              leading: Icon(Icons.money),
-            ),
-            state.statusTrip == StatusTrip.ARRIVED
-                ? _actionUpdateStatus(
-                    'FINALIZAR VIAJE', Icons.power_settings_new, () {
-                    context
-                        .read<DriverMapTripBloc>()
-                        .add(UpdateStatusToFinished());
-                  })
-                : _actionUpdateStatus('NOTIFICAR LLEGADA', Icons.check, () {
-                    context
-                        .read<DriverMapTripBloc>()
-                        .add(UpdateStatusToArrived());
-                  })
-          ],
-
-          ));
+          ),
+          state.statusTrip == StatusTrip.ARRIVED
+              ? _actionUpdateStatus(
+                  'FINALIZAR VIAJE', Icons.power_settings_new, () {
+                  context
+                      .read<DriverMapTripBloc>()
+                      .add(UpdateStatusToFinished());
+                })
+              : _actionUpdateStatus('NOTIFICAR LLEGADA', Icons.check, () {
+                  context
+                      .read<DriverMapTripBloc>()
+                      .add(UpdateStatusToArrived());
+                }),
+        ],
+      ),
+    );
   }
 
   Widget _actionUpdateStatus(
@@ -138,24 +143,19 @@ class DriverMapTripContent extends StatelessWidget {
         function();
       },
       child: Container(
-        margin: EdgeInsets.only(left: 10, right: 0, top: 15),
+        margin: const EdgeInsets.only(left: 10, right: 0, top: 15),
         child: ListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(
             option,
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           leading: Container(
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-                gradient: LinearGradient(
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                    colors: [
-                      Color.fromARGB(255, 19, 58, 213),
-                      Color.fromARGB(255, 65, 173, 255),
-                    ]),
-                borderRadius: BorderRadius.all(Radius.circular(50))),
+            padding: const EdgeInsets.all(10),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFF8000),
+              borderRadius: BorderRadius.all(Radius.circular(50)),
+            ),
             child: Icon(
               icon,
               color: Colors.white,
