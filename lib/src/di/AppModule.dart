@@ -82,7 +82,7 @@ abstract class AppModule {
   @injectable
   Future<String> get token async {
     String token = '';
-    final userSession = await sharefPref.read('usario');
+    final userSession = await sharefPref.read('usuario');
     if (userSession != null) {
       AuthResponse  authResponse = AuthResponse.fromJson(userSession);
       token = authResponse.token;
