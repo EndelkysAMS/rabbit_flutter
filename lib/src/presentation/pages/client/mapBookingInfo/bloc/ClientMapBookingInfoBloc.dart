@@ -89,7 +89,7 @@ class ClientMapBookingInfoBloc extends Bloc<ClientMapBookingInfoEvent, ClientMap
       Resource<int> response = await clientRequestsUseCases.createClientRequest.run(
         ClientRequest(
           idClient: authResponse.user.id!, 
-          fareOffered: double.parse(state.fareOffered.value), 
+          fareOffered: double.parse(state.fareOffered.value.replaceAll(',', '.')),
           pickupDescription: state.pickUpDescription, 
           destinationDescription: state.destinationDescription, 
           pickupLat: state.pickUpLatLng!.latitude, 

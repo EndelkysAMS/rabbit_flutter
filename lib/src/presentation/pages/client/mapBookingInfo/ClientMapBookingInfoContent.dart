@@ -82,7 +82,7 @@ class ClientMapBookingInfoContent extends StatelessWidget {
           DefaultTextField(
             hintText: 'Ofrece tu Tarifa',
             icon: Icons.attach_money,
-            keyboardType: TextInputType.phone,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
             onChanged: (text) {
               context.read<ClientMapBookingInfoBloc>().add(
                 FareOfferedChanged(fareOffered: BlocFormItem(value: text)),
