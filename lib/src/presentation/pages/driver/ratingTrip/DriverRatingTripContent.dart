@@ -45,7 +45,7 @@ class DriverRatingTripContent extends StatelessWidget {
 
   Widget _textFareValue() {
     return Text(
-      '\$${clientRequestResponse?.fareAssigned}',
+      '${clientRequestResponse?.fareAssigned}',
       style: TextStyle(
         fontWeight: FontWeight.bold,
         fontSize: 35,

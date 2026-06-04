@@ -170,7 +170,7 @@ class ClientMapBookingInfoContent extends StatelessWidget {
           leading: Container(
             padding: const EdgeInsets.all(10),
             decoration: const BoxDecoration(
-              color: Color.fromARGB(255, 0, 0, 0),
+              color: Color.fromARGB(255, 250, 138, 25),
               borderRadius: BorderRadius.all(Radius.circular(50)),
             ),
             child: Icon(

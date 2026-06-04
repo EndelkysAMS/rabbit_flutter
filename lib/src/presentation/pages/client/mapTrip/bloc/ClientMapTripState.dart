@@ -21,7 +21,7 @@ class ClientMapTripState extends Equatable {
   ClientMapTripState({
     this.responseGetClientRequest,
     this.controller,
-    this.cameraPosition = const CameraPosition(target: LatLng(4.7449125, -74.1113708), zoom: 14.0),
+    this.cameraPosition = const CameraPosition(target: LatLng(9.3789968, -70.7536265), zoom: 14.0),
     this.markers = const <MarkerId, Marker>{},
     this.polylines = const <PolylineId, Polyline>{},
     this.timeAndDistanceValues,
