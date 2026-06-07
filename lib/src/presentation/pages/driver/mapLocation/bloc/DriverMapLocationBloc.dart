@@ -13,99 +13,96 @@ import 'package:rabbit_flutter/src/domain/useCases/socket/SocketUseCases.dart';
 import 'package:rabbit_flutter/src/presentation/pages/driver/mapLocation/bloc/DriverMapLocationEvent.dart';
 import 'package:rabbit_flutter/src/presentation/pages/driver/mapLocation/bloc/DriverMapLocationState.dart';
 
-class DriverMapLocationBloc extends Bloc<DriverMapLocationEvent, DriverMapLocationState> {
-
+class DriverMapLocationBloc
+    extends Bloc<DriverMapLocationEvent, DriverMapLocationState> {
   SocketUseCases socketUseCases;
   GeolocatorUseCases geolocatorUseCases;
   AuthUseCases authUseCases;
   DriversPositionUseCases driversPositionUseCases;
   StreamSubscription? positionSubscription;
+  bool _isClosed = false;
   BlocSocketIO blocSocketIO;
-  
-  DriverMapLocationBloc(this.blocSocketIO, this.geolocatorUseCases, this.socketUseCases, this.authUseCases, this.driversPositionUseCases): super(DriverMapLocationState()) {
-    
+
+  DriverMapLocationBloc(this.blocSocketIO, this.geolocatorUseCases,
+      this.socketUseCases, this.authUseCases, this.driversPositionUseCases)
+      : super(DriverMapLocationState()) {
     on<DriverMapLocationInitEvent>((event, emit) async {
-      Completer<GoogleMapController> controller = Completer<GoogleMapController>();
+      Completer<GoogleMapController> controller =
+          Completer<GoogleMapController>();
       AuthResponse authResponse = await authUseCases.getUserSession.run();
-      emit(
-        state.copyWith(
-          controller: controller,
-          idDriver: authResponse.user.id
-        )
-      );
+      emit(state.copyWith(
+          controller: controller, idDriver: authResponse.user.id));
     });
-    
+
     on<FindPosition>((event, emit) async {
       Position position = await geolocatorUseCases.findPosition.run();
-      add(ChangeMapCameraPosition(lat: position.latitude, lng: position.longitude));
-      add(AddMyPositionMarker(lat: position.latitude, lng: position.longitude));
-      Stream<Position> positionStream = geolocatorUseCases.getPositionStream.run();
-      positionSubscription = positionStream.listen((Position position) {
-        add(UpdateLocation(position: position));
+      if (state.idDriver != null) {
         add(SaveLocationData(
           driverPosition: DriverPosition(
-            idDriver: state.idDriver!, 
-            lat: position.latitude, 
-            lng: position.longitude)
-          )
-        );
+            idDriver: state.idDriver!,
+            lat: position.latitude,
+            lng: position.longitude,
+          ),
+        ));
+      }
+      add(ChangeMapCameraPosition(
+          lat: position.latitude, lng: position.longitude));
+      add(AddMyPositionMarker(lat: position.latitude, lng: position.longitude));
+      Stream<Position> positionStream =
+          geolocatorUseCases.getPositionStream.run();
+      positionSubscription = positionStream.listen((Position position) {
+        add(UpdateLocation(position: position));
+        if (state.idDriver != null) {
+          add(SaveLocationData(
+              driverPosition: DriverPosition(
+                  idDriver: state.idDriver!,
+                  lat: position.latitude,
+                  lng: position.longitude)));
+        }
       });
-      emit(
-        state.copyWith(
-          position: position,
-        )
-      );
+      emit(state.copyWith(
+        position: position,
+      ));
     });
 
     on<AddMyPositionMarker>((event, emit) async {
-      BitmapDescriptor descriptor = await geolocatorUseCases.createMarker.run('assets/img/moto_pin.png');
+      BitmapDescriptor descriptor =
+          await geolocatorUseCases.createMarker.run('assets/img/moto_pin.png');
       Marker marker = geolocatorUseCases.getMarker.run(
-        'my_location',
-        event.lat,
-        event.lng,
-        'Mi posición',
-        '',
-        descriptor
-      );
-      emit(
-        state.copyWith(
-          markers: {
-            marker.markerId: marker
-          },
-        )
-      );
+          'my_location', event.lat, event.lng, 'Mi posición', '', descriptor);
+      emit(state.copyWith(
+        markers: {marker.markerId: marker},
+      ));
     });
 
     on<ChangeMapCameraPosition>((event, emit) async {
       try {
-        GoogleMapController googleMapController = await state.controller!.future;
+        if (_isClosed || state.controller == null) return;
+        GoogleMapController googleMapController =
+            await state.controller!.future;
+        if (_isClosed) return;
         await googleMapController.animateCamera(CameraUpdate.newCameraPosition(
-          CameraPosition(
-            target: LatLng(event.lat, event.lng),
-            zoom: 13,
-            bearing: 0
-          )
-        ));
+            CameraPosition(
+                target: LatLng(event.lat, event.lng), zoom: 13, bearing: 0)));
       } catch (e) {
         print('ERROR EN ChangeMapCameraPosition: $e');
       }
-      
-    });  
+    });
 
     on<UpdateLocation>((event, emit) async {
-      add(AddMyPositionMarker(lat: event.position.latitude, lng: event.position.longitude));
-      add(ChangeMapCameraPosition(lat: event.position.latitude, lng: event.position.longitude));
-      emit(
-        state.copyWith(
-          position: event.position
-        )
-      );
+      add(AddMyPositionMarker(
+          lat: event.position.latitude, lng: event.position.longitude));
+      add(ChangeMapCameraPosition(
+          lat: event.position.latitude, lng: event.position.longitude));
+      emit(state.copyWith(position: event.position));
       add(EmitDriverPositionSocketIO());
     });
 
     on<StopLocation>((event, emit) {
       positionSubscription?.cancel();
-       add(DeleteLocationData(idDriver: state.idDriver!));
+      if (state.idDriver != null) {
+        add(DeleteLocationData(idDriver: state.idDriver!));
+      }
     });
 
     on<EmitDriverPositionSocketIO>((event, emit) async {
@@ -117,14 +114,19 @@ class DriverMapLocationBloc extends Bloc<DriverMapLocationEvent, DriverMapLocati
     });
 
     on<SaveLocationData>((event, emit) async {
-      await driversPositionUseCases.createDriverPosition.run(event.driverPosition);
-    }); 
+      await driversPositionUseCases.createDriverPosition
+          .run(event.driverPosition);
+    });
 
     on<DeleteLocationData>((event, emit) async {
       await driversPositionUseCases.deleteDriverPosition.run(event.idDriver);
     });
-
   }
 
-
+  @override
+  Future<void> close() {
+    _isClosed = true;
+    positionSubscription?.cancel();
+    return super.close();
+  }
 }

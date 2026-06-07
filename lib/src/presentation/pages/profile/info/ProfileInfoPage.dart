@@ -15,7 +15,16 @@ class _ProfileInfoPageState extends State<ProfileInfoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<ProfileInfoBloc, ProfileInfoState>(
+      body: BlocConsumer<ProfileInfoBloc, ProfileInfoState>(
+        listener: (context, state) {
+          if (state.didLogout) {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              'login',
+              (route) => false,
+            );
+          }
+        },
         builder: (context, state) {
           return ProfileInfoContent(state.user);
         },

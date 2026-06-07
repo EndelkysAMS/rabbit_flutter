@@ -36,10 +36,6 @@ class _ClientMapBookingInfoPageState extends State<ClientMapBookingInfoPage> {
             pickUpDescription: pickUpDestination!,
             destinationDescription: destinationDescription!,
           ));
-      context.read<ClientMapBookingInfoBloc>().add(GetTimeAndDistanceValues());
-      context.read<ClientMapBookingInfoBloc>().add(AddPolyline());
-      context.read<ClientMapBookingInfoBloc>().add(ChangeMapCameraPosition(
-          lat: pickUpLatLng!.latitude, lng: pickUpLatLng!.longitude));
     });
   }
 
@@ -57,10 +53,19 @@ class _ClientMapBookingInfoPageState extends State<ClientMapBookingInfoPage> {
           final responseClientRequest = state.responseClientRequest;
           if (responseClientRequest is Success) {
             int idClientRequest = responseClientRequest.data;
-            context.read<ClientMapBookingInfoBloc>().add(EmitNewClientRequestSocketIO(idClientRequest: idClientRequest));
+            context.read<ClientMapBookingInfoBloc>().add(
+                EmitNewClientRequestSocketIO(idClientRequest: idClientRequest));
             // Navigator.pushNamedAndRemoveUntil(context, 'client/driver/offers', (route) => false);
-            Navigator.pushNamed(context, 'client/driver/offers', arguments: idClientRequest);
-            Fluttertoast.showToast(msg: 'Solicitud enviada', toastLength: Toast.LENGTH_LONG);
+            Navigator.pushNamed(context, 'client/driver/offers', arguments: {
+              'idClientRequest': idClientRequest,
+            });
+            Fluttertoast.showToast(
+                msg: 'Solicitud enviada', toastLength: Toast.LENGTH_LONG);
+          } else if (responseClientRequest is ErrorData) {
+            Fluttertoast.showToast(
+              msg: responseClientRequest.message,
+              toastLength: Toast.LENGTH_LONG,
+            );
           }
         },
         child: BlocBuilder<ClientMapBookingInfoBloc, ClientMapBookingInfoState>(
@@ -72,7 +77,7 @@ class _ClientMapBookingInfoPageState extends State<ClientMapBookingInfoPage> {
               );
             } else if (responseTimeAndDistance is Success) {
               TimeAndDistanceValues timeAndDistanceValues =
-                  responseTimeAndDistance.data as TimeAndDistanceValues;   
+                  responseTimeAndDistance.data as TimeAndDistanceValues;
               return ClientMapBookingInfoContent(state, timeAndDistanceValues);
             } else if (responseTimeAndDistance is ErrorData) {
               return Center(

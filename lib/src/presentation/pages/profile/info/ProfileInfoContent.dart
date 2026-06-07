@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rabbit_flutter/src/domain/models/user.dart';
+import 'package:rabbit_flutter/src/presentation/pages/profile/info/bloc/ProfileInfoBloc.dart';
+import 'package:rabbit_flutter/src/presentation/pages/profile/info/bloc/ProfileInfoEvent.dart';
 
 class ProfileInfoContent extends StatelessWidget {
-  
   final User? user;
-  
+
   const ProfileInfoContent(this.user);
 
   @override
@@ -15,11 +17,15 @@ class ProfileInfoContent extends StatelessWidget {
           children: [
             _headerProfile(context),
             Spacer(),
-            _actionProfile('Editar Perfil', Icons.edit, () { 
+            _actionProfile('Editar Perfil', Icons.edit, () {
               Navigator.pushNamed(context, 'profile/update', arguments: user);
-             }),
-            _actionProfile('Cerrar Sesión', Icons.settings_power, () {}),
-            SizedBox(height: 35,)
+            }),
+            _actionProfile('Cerrar Sesión', Icons.settings_power, () {
+              context.read<ProfileInfoBloc>().add(LogoutProfile());
+            }),
+            SizedBox(
+              height: 35,
+            )
           ],
         ),
         _cardUserInfo(context)
@@ -27,7 +33,7 @@ class ProfileInfoContent extends StatelessWidget {
     );
   }
 
-  Widget _cardUserInfo(BuildContext context){
+  Widget _cardUserInfo(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(left: 20, right: 20, top: 160),
       width: MediaQuery.of(context).size.width,
@@ -43,35 +49,28 @@ class ProfileInfoContent extends StatelessWidget {
               child: AspectRatio(
                 aspectRatio: 1,
                 child: ClipOval(
-                  child:  user != null && user!.image != null
-                  ? FadeInImage.assetNetwork(
-                    placeholder: 'assets/img/user_image.jpg', 
-                    image: user!.image!,
-                    fit: BoxFit.cover,
-                    fadeInDuration: Duration(seconds: 1),
-                  )
-                  : Container(),
+                  child: user != null && user!.image != null
+                      ? FadeInImage.assetNetwork(
+                          placeholder: 'assets/img/user_image.jpg',
+                          image: user!.image!,
+                          fit: BoxFit.cover,
+                          fadeInDuration: Duration(seconds: 1),
+                        )
+                      : Container(),
                 ),
               ),
             ),
             Text(
-            '${user?.name ?? ''} ${user?.lastname ?? ''}',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16
-              ),
+              '${user?.name ?? ''} ${user?.lastname ?? ''}',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             Text(
               user?.email ?? '',
-              style: TextStyle(
-                color: Colors.grey[600]
-              ),
+              style: TextStyle(color: Colors.grey[600]),
             ),
             Text(
               user?.phone ?? '',
-              style: TextStyle(
-                color: Colors.grey[600]
-              ),
+              style: TextStyle(color: Colors.grey[600]),
             ),
           ],
         ),
@@ -89,16 +88,13 @@ class ProfileInfoContent extends StatelessWidget {
         child: ListTile(
           title: Text(
             option,
-            style: TextStyle(
-              fontWeight: FontWeight.bold
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
           leading: Container(
             padding: EdgeInsets.all(10),
-           decoration: BoxDecoration(
-            color: Color(0xFFFF8000),
-            borderRadius: BorderRadius.all(Radius.circular(50))
-           ),
+            decoration: BoxDecoration(
+                color: Color(0xFFFF8000),
+                borderRadius: BorderRadius.all(Radius.circular(50))),
             child: Icon(
               icon,
               color: Colors.white,

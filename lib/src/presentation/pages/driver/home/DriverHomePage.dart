@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rabbit_flutter/blocSocketIO/BlocSocketIO.dart';
 import 'package:rabbit_flutter/blocSocketIO/BlocSocketIOEvent.dart';
+import 'package:rabbit_flutter/src/presentation/pages/driver/clientRequests/bloc/DriverClientRequestsBloc.dart';
+import 'package:rabbit_flutter/src/presentation/pages/driver/clientRequests/bloc/DriverClientRequestsEvent.dart';
 import 'package:rabbit_flutter/src/presentation/pages/driver/bikeInfo/DriverBikeInfoPage.dart';
 import 'package:rabbit_flutter/src/presentation/pages/driver/clientRequests/DriverClientRequestsPage.dart';
 import 'package:rabbit_flutter/src/presentation/pages/driver/historyTrip/DriverHistoryTripPage.dart';
@@ -135,6 +137,7 @@ class _DriverHomePageState extends State<DriverHomePage> {
                    (route) => false,
                    );
             blocSocketIO.add(DisconnectSocketIO());
+            context.read<DriverClientRequestsBloc>().add(DisableRealtimeRequests());
             driverHomeBloc.add(Logout());
 },
                 ),

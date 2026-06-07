@@ -6,7 +6,6 @@ import 'package:rabbit_flutter/src/presentation/pages/client/driverOffers/bloc/C
 import 'package:rabbit_flutter/src/presentation/pages/widgets/DefaultButton.dart';
 
 class ClientDriverOffersItem extends StatelessWidget {
-
   final DriverTripRequest? driverTripRequest;
 
   const ClientDriverOffersItem(this.driverTripRequest, {super.key});
@@ -14,10 +13,10 @@ class ClientDriverOffersItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -26,8 +25,8 @@ class ClientDriverOffersItem extends StatelessWidget {
             decoration: const BoxDecoration(
               color: Color(0xFFFF8000),
               borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
+                topLeft: Radius.circular(14),
+                topRight: Radius.circular(14),
               ),
             ),
             child: ListTile(
@@ -56,7 +55,7 @@ class ClientDriverOffersItem extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    '${driverTripRequest?.time} min',
+                    '${(driverTripRequest?.time ?? 0).toStringAsFixed(1)} min',
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.white,
@@ -64,7 +63,7 @@ class ClientDriverOffersItem extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${driverTripRequest?.distance} km',
+                    '${(driverTripRequest?.distance ?? 0).toStringAsFixed(1)} km',
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.white,
@@ -74,13 +73,24 @@ class ClientDriverOffersItem extends StatelessWidget {
               ),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: const Text(
+              'Oferta',
+              style: TextStyle(
+                color: Color(0xFFFF8000),
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
                 margin: const EdgeInsets.only(left: 20, bottom: 15, top: 10),
                 child: Text(
-                  'Bs. ${driverTripRequest?.fareOffered}',
+                  '\$${(driverTripRequest?.fareOffered ?? 0).toStringAsFixed(2)}',
                   style: const TextStyle(
                     fontSize: 27,
                     fontWeight: FontWeight.bold,
@@ -94,13 +104,13 @@ class ClientDriverOffersItem extends StatelessWidget {
                   text: 'Aceptar',
                   onPressed: () {
                     context.read<ClientDriverOffersBloc>().add(
-                      AssignDriver(
-                        idClientRequest: driverTripRequest!.idClientRequest,
-                        idDriver: driverTripRequest!.idDriver,
-                        fareAssigned: driverTripRequest!.fareOffered,
-                        context: context,
-                      ),
-                    );
+                          AssignDriver(
+                            idClientRequest: driverTripRequest!.idClientRequest,
+                            idDriver: driverTripRequest!.idDriver,
+                            fareAssigned: driverTripRequest!.fareOffered,
+                            context: context,
+                          ),
+                        );
                   },
                   width: 120,
                   height: 40,

@@ -1,4 +1,6 @@
 import 'package:geolocator/geolocator.dart';
+import 'package:rabbit_flutter/src/domain/models/ClientRequestResponse.dart'
+    show ClientRequestResponse;
 
 abstract class DriverMapTripEvent {}
 
@@ -7,6 +9,11 @@ class InitDriverMapTripEvent extends DriverMapTripEvent {}
 class GetClientRequest extends DriverMapTripEvent {
   final int idClientRequest;
   GetClientRequest({required this.idClientRequest});
+}
+
+class SetClientRequestData extends DriverMapTripEvent {
+  final ClientRequestResponse clientRequest;
+  SetClientRequestData({required this.clientRequest});
 }
 class GetTimeAndDistanceValues extends DriverMapTripEvent {}
 

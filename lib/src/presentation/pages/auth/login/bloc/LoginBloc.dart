@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rabbit_flutter/src/domain/models/AuthResponse.dart';
 import 'package:rabbit_flutter/src/domain/useCases/auth/AuthUseCases.dart';
+import 'package:rabbit_flutter/src/domain/utils/FirebasePushNotifications.dart';
 import 'package:rabbit_flutter/src/domain/useCases/users/UsersUseCases.dart';
 import 'package:rabbit_flutter/src/domain/utils/Resource.dart';
 import 'package:rabbit_flutter/src/presentation/pages/auth/login/bloc/LoginEvent.dart';
@@ -29,10 +30,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           )
         );
       }
-    });
-
-    on<SaveUserSession>((event, emit) async {
-      await authUseCases.saveUserSession.run(event.authResponse);
     });
 
     on<EmailChanged>((event, emit) {
@@ -85,14 +82,25 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
     on<UpdateNotificationToken>((event, emit) async {
       try {
-        String? token = await FirebaseMessaging.instance.getToken();
-        if (token != null) {
-         await usersUseCases.updateNotificationToken.run(event.id, token);
+        String? token = event.token;
+        token ??= await FirebaseMessaging.instance.getToken();
+        if (token != null && token.isNotEmpty) {
+          await usersUseCases.updateNotificationToken.run(event.id, token);
         }  
       } catch (e) {
         print('ERROR ACTUALIZANDO TOKEN: $e');
       }
       
+    });
+
+    on<SaveUserSession>((event, emit) async {
+      await authUseCases.saveUserSession.run(event.authResponse);
+      final id = event.authResponse.user.id;
+      if (id != null) {
+        await registerFcmTokenRefresh((token) async {
+          add(UpdateNotificationToken(id: id, token: token));
+        });
+      }
     });
   }
 

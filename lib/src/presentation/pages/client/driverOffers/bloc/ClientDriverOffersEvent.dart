@@ -11,6 +11,7 @@ class ListenNewDriverOfferSocketIO extends ClientDriverOffersEvent {
   final int idClientRequest;
   ListenNewDriverOfferSocketIO({required this.idClientRequest});
 }
+class StopListenNewDriverOfferSocketIO extends ClientDriverOffersEvent {}
 
 class AssignDriver extends ClientDriverOffersEvent {
   final int idClientRequest;

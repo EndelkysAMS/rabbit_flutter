@@ -10,9 +10,8 @@ import 'package:rabbit_flutter/src/presentation/pages/widgets/DefaultTextField.d
 import 'package:rabbit_flutter/src/presentation/utils/BlocFormItem.dart';
 
 class DriverClientRequestsItem extends StatelessWidget {
-
-  DriverClientRequestsState state;
-  ClientRequestResponse? clientRequest;
+  final DriverClientRequestsState state;
+  final ClientRequestResponse? clientRequest;
 
   DriverClientRequestsItem(this.state, this.clientRequest);
 
@@ -20,24 +19,34 @@ class DriverClientRequestsItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        FareOfferedDialog(
-          context, 
-          () {
-            if (clientRequest != null && state.idDriver != null && context.read<DriverClientRequestsBloc>().state.fareOffered.value.isNotEmpty) {
-              context.read<DriverClientRequestsBloc>().add(
-                CreateDriverTripRequest(
-                  driverTripRequest: DriverTripRequest(
-                    idDriver: state.idDriver!, 
-                    idClientRequest: clientRequest!.id, 
-                    fareOffered: double.parse(context.read<DriverClientRequestsBloc>().state.fareOffered.value), 
-                    time: clientRequest!.googleDistanceMatrix!.duration.value.toDouble() / 60, 
-                    distance: clientRequest!.googleDistanceMatrix!.distance.value.toDouble() / 1000, 
-                  )
-                )
-              );
-            } else {
-              Fluttertoast.showToast(msg: 'No se puede enviar la oferta', toastLength: Toast.LENGTH_LONG);
-            }
+        FareOfferedDialog(context, () {
+          if (clientRequest != null &&
+              state.idDriver != null &&
+              context
+                  .read<DriverClientRequestsBloc>()
+                  .state
+                  .fareOffered
+                  .value
+                  .isNotEmpty) {
+            context
+                .read<DriverClientRequestsBloc>()
+                .add(CreateDriverTripRequest(
+                    driverTripRequest: DriverTripRequest(
+                  idDriver: state.idDriver!,
+                  idClientRequest: clientRequest!.id,
+                  fareOffered: double.parse(context
+                      .read<DriverClientRequestsBloc>()
+                      .state
+                      .fareOffered
+                      .value),
+                  time: _safeTripMinutes(),
+                  distance: _safeTripDistanceKm(),
+                )));
+          } else {
+            Fluttertoast.showToast(
+                msg: 'No se puede enviar la oferta',
+                toastLength: Toast.LENGTH_LONG);
+          }
         });
       },
       child: Card(
@@ -59,7 +68,7 @@ class DriverClientRequestsItem extends StatelessWidget {
               child: ListTile(
                 trailing: _imageUser(),
                 title: Text(
-                  'Tarifa ofrecida: Bs. ${clientRequest?.fareOffered}',
+                  'Tarifa ofrecida: \$ ${clientRequest?.fareOffered}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -99,8 +108,8 @@ class DriverClientRequestsItem extends StatelessWidget {
               ),
               subtitle: Column(
                 children: [
-                  _textMinutes(),
-                  _textDistance(),
+                  _textMinutesRow(),
+                  _textDistanceRow(),
                 ],
               ),
             ),
@@ -110,7 +119,7 @@ class DriverClientRequestsItem extends StatelessWidget {
     );
   }
 
-  Widget _textMinutes() {
+  Widget _textMinutesRow() {
     return Row(
       children: [
         Container(
@@ -123,14 +132,12 @@ class DriverClientRequestsItem extends StatelessWidget {
             ),
           ),
         ),
-        Flexible(
-          child: Text(clientRequest?.googleDistanceMatrix?.duration.text ?? ''),
-        ),
+        Flexible(child: Text(_minutesText())),
       ],
     );
   }
 
-  Widget _textDistance() {
+  Widget _textDistanceRow() {
     return Row(
       children: [
         Container(
@@ -143,9 +150,7 @@ class DriverClientRequestsItem extends StatelessWidget {
             ),
           ),
         ),
-        Flexible(
-          child: Text(clientRequest?.googleDistanceMatrix?.distance.text ?? ''),
-        ),
+        Flexible(child: Text(_distanceText())),
       ],
     );
   }
@@ -233,8 +238,8 @@ class DriverClientRequestsItem extends StatelessWidget {
           keyboardType: TextInputType.phone,
           onChanged: (text) {
             context.read<DriverClientRequestsBloc>().add(
-              FareOfferedChange(fareOffered: BlocFormItem(value: text)),
-            );
+                  FareOfferedChange(fareOffered: BlocFormItem(value: text)),
+                );
           },
         ),
         actions: [
@@ -255,5 +260,35 @@ class DriverClientRequestsItem extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  double _safeTripMinutes() {
+    final fromMatrix = clientRequest?.googleDistanceMatrix?.duration.value;
+    if (fromMatrix != null) return fromMatrix / 60;
+    return clientRequest?.timeDifference != null
+        ? double.tryParse(clientRequest!.timeDifference!) ?? 0
+        : 0;
+  }
+
+  double _safeTripDistanceKm() {
+    final fromMatrix = clientRequest?.googleDistanceMatrix?.distance.value;
+    if (fromMatrix != null) return fromMatrix / 1000;
+    return clientRequest?.distance ?? 0;
+  }
+
+  String _minutesText() {
+    final text = clientRequest?.googleDistanceMatrix?.duration.text;
+    if (text != null && text.isNotEmpty) return text;
+    final minutes = _safeTripMinutes();
+    if (minutes <= 0) return '--';
+    return '${minutes.toStringAsFixed(1)} min';
+  }
+
+  String _distanceText() {
+    final text = clientRequest?.googleDistanceMatrix?.distance.text;
+    if (text != null && text.isNotEmpty) return text;
+    final km = _safeTripDistanceKm();
+    if (km <= 0) return '--';
+    return '${km.toStringAsFixed(1)} km';
   }
 }

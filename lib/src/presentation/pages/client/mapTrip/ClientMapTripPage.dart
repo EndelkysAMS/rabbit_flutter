@@ -17,33 +17,34 @@ class ClientMapTripPage extends StatefulWidget {
 
 class _ClientMapTripPageState extends State<ClientMapTripPage> {
   int? idClientRequest;
+  bool _isInitialized = false;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      if (idClientRequest != null) {
-        context.read<ClientMapTripBloc>().add(InitClientMapTripEvent());
-        context.read<ClientMapTripBloc>().add(GetClientRequest(idClientRequest: idClientRequest!));
-        context.read<ClientMapTripBloc>().add(ListenTripNewDriverPosition());
-      }
-    });
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_isInitialized) return;
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final parsedId = args is int ? args : int.tryParse(args?.toString() ?? '');
+    if (parsedId == null || parsedId <= 0) return;
+    idClientRequest = parsedId;
+    final bloc = context.read<ClientMapTripBloc>();
+    bloc.add(InitClientMapTripEvent());
+    bloc.add(GetClientRequest(idClientRequest: parsedId));
+    bloc.add(ListenTripNewDriverPosition());
+    _isInitialized = true;
   }
 
   @override
   Widget build(BuildContext context) {
-    idClientRequest = ModalRoute.of(context)?.settings.arguments as int;
     return Scaffold(
       body: BlocListener<ClientMapTripBloc, ClientMapTripState>(
         listener: (context, state) {
           final responseClientRequest = state.responseGetClientRequest;
-          
-          if (responseClientRequest is Success) {
-            final data = responseClientRequest.data as ClientRequestResponse;
-            
-          }
-          else if (responseClientRequest is ErrorData) {
-            Fluttertoast.showToast(msg: responseClientRequest.message, toastLength: Toast.LENGTH_LONG);
+
+          if (responseClientRequest is ErrorData) {
+            Fluttertoast.showToast(
+                msg: responseClientRequest.message,
+                toastLength: Toast.LENGTH_LONG);
           }
         },
         child: BlocBuilder<ClientMapTripBloc, ClientMapTripState>(
@@ -51,7 +52,7 @@ class _ClientMapTripPageState extends State<ClientMapTripPage> {
             final responseClientRequest = state.responseGetClientRequest;
             if (responseClientRequest is Success) {
               final data = responseClientRequest.data as ClientRequestResponse;
-              
+
               return ClientMapTripContent(state, data);
             }
             return Container();

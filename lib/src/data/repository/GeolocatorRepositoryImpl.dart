@@ -45,11 +45,13 @@ class GeolocatorRepositoryImpl implements GeolocatorRepository {
 
   @override
   Marker getMarker(String markerId, double lat, double lng, String title,
-      String content, BitmapDescriptor imageMarker) {
+      String content, BitmapDescriptor imageMarker,
+      {Offset anchor = const Offset(0.5, 0.5)}) {
     MarkerId id = MarkerId(markerId);
     Marker marker = Marker(
         markerId: id,
         icon: imageMarker,
+        anchor: anchor,
         position: LatLng(lat, lng),
         infoWindow: InfoWindow(title: title, snippet: content));
     return marker;
@@ -88,8 +90,7 @@ class GeolocatorRepositoryImpl implements GeolocatorRepository {
             origin: PointLatLng(pickUpLatLng.latitude, pickUpLatLng.longitude),
             destination: PointLatLng(
                 destinationLatLng.latitude, destinationLatLng.longitude),
-            mode: TravelMode.driving,
-            wayPoints: [PolylineWayPoint(location: "Trujillo, Venezuela")]),
+            mode: TravelMode.driving),
         googleApiKey: API_KEY_GOOGLE);
 
     List<LatLng> polylineCoordinates = [];
@@ -100,6 +101,7 @@ class GeolocatorRepositoryImpl implements GeolocatorRepository {
     }
     return polylineCoordinates;
   }
+
   @override
   Stream<Position> getPositionStream() {
     LocationSettings locationSettings =

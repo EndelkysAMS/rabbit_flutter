@@ -1,21 +1,22 @@
 import 'package:equatable/equatable.dart';
 import 'package:rabbit_flutter/src/domain/models/user.dart';
 
-class ProfileInfoState  extends Equatable {
+class ProfileInfoState extends Equatable {
+  final User? user;
+  final bool didLogout;
 
- final User?  user;
-
-  ProfileInfoState({this.user});
+  ProfileInfoState({this.user, this.didLogout = false});
 
   ProfileInfoState copyWith({
-    User? user
+    User? user,
+    bool? didLogout,
   }) {
     return ProfileInfoState(
-      user: user
+      user: user ?? this.user,
+      didLogout: didLogout ?? this.didLogout,
     );
   }
- 
- @override
-  List<Object?> get props => [user];
 
+  @override
+  List<Object?> get props => [user, didLogout];
 }

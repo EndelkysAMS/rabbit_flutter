@@ -14,6 +14,28 @@ class UsersService {
 
   UsersService(this.token);
 
+  dynamic _safeDecode(http.Response response) {
+    final body = response.body.trim();
+    if (body.isEmpty) return null;
+    final contentType = response.headers['content-type'] ?? '';
+    if (!contentType.toLowerCase().contains('application/json')) {
+      return {'message': body.length > 300 ? body.substring(0, 300) : body};
+    }
+    try {
+      return json.decode(body);
+    } catch (_) {
+      return {'message': body.length > 300 ? body.substring(0, 300) : body};
+    }
+  }
+
+  String _errorMessage(dynamic data, {String fallback = 'Error inesperado'}) {
+    if (data is Map && data['message'] != null) {
+      return listToString(data['message']);
+    }
+    if (data is String && data.isNotEmpty) return data;
+    return fallback;
+  }
+
   Future<Resource<User>> update(int id, User user) async {
     try {
       Uri url = Uri.http(ApiConfig.API_RABBIT, '/users/$id');
@@ -27,13 +49,16 @@ class UsersService {
         'phone': user.phone,
       });
       final response = await http.put(url, headers: headers, body: body);
-      final data = json.decode(response.body);
+      final data = _safeDecode(response);
       if (response.statusCode == 200 || response.statusCode == 201) {
+        if (data is! Map<String, dynamic>) {
+          return ErrorData('Respuesta inválida del servidor');
+        }
         User userResponse = User.fromJson(data);
         return Success(userResponse);
       }
       else {
-        return ErrorData(listToString(data['message']));
+        return ErrorData(_errorMessage(data));
       }
     } catch (e) {
       print('Error: $e');
@@ -43,23 +68,48 @@ class UsersService {
 
   Future<Resource<User>> updateNotificationToken(int id, String notificationToken) async {
     try {
-      Uri url = Uri.http(ApiConfig.API_RABBIT, '/users/notification_token/$id');
-      Map<String, String> headers = {
+      final headers = {
         'Content-Type': 'application/json',
+        'Authorization': await token,
       };
-      String body = json.encode({
+      final body = json.encode({
         'notification_token': notificationToken,
+        'id_user': id,
       });
-      final response = await http.put(url, headers: headers, body: body);
-      final data = json.decode(response.body);
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        User userResponse = User.fromJson(data);
-        return Success(userResponse);
+      final candidatePaths = [
+        '/users/notification_token/$id',
+        '/users/notification-token/$id',
+        '/users/notification_token',
+        '/users/notification-token',
+      ];
+      dynamic lastData;
+      int? lastStatus;
+
+      for (final path in candidatePaths) {
+        final url = Uri.http(ApiConfig.API_RABBIT, path);
+        final response = await http.put(url, headers: headers, body: body);
+        final data = _safeDecode(response);
+        lastData = data;
+        lastStatus = response.statusCode;
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (data is! Map<String, dynamic>) {
+            return ErrorData('Respuesta inválida del servidor');
+          }
+          final userResponse = User.fromJson(data);
+          return Success(userResponse);
+        }
+
+        // Si la ruta no existe, intenta la siguiente variante.
+        if (response.statusCode == 404) continue;
+
+        return ErrorData(_errorMessage(data));
       }
-      else {
-        print('ERROR ${listToString(data['message'])}');
-        return ErrorData(listToString(data['message']));
-      }
+
+      return ErrorData(
+        'No se pudo actualizar notification_token (status ${lastStatus ?? 'N/A'}): '
+        '${_errorMessage(lastData)}',
+      );
     } catch (e) {
       print('Error: $e');
       return ErrorData(e.toString());

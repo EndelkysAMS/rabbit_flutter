@@ -196,6 +196,9 @@ class ClientMapBookingInfoContent extends StatelessWidget {
           if (!state.controller!.isCompleted) {
             state.controller?.complete(controller);
           }
+          if (state.polylines.isNotEmpty) {
+            context.read<ClientMapBookingInfoBloc>().add(FitRouteCamera());
+          }
         },
       ),
     );

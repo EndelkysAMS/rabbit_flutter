@@ -5,24 +5,32 @@ class ClientDriverOffersState extends Equatable {
 
   final Resource? responseDriverOffers;
   final Resource? responseAssignDriver;
+  final int? activeClientRequestId;
+  final bool isRealtimeEnabled;
 
-  ClientDriverOffersState({
+  const ClientDriverOffersState({
     this.responseDriverOffers,
-    this.responseAssignDriver
+    this.responseAssignDriver,
+    this.activeClientRequestId,
+    this.isRealtimeEnabled = false,
   });
 
   ClientDriverOffersState copyWith({
     Resource? responseDriverOffers,
-    Resource? responseAssignDriver
+    Resource? responseAssignDriver,
+    int? activeClientRequestId,
+    bool? isRealtimeEnabled,
   }) {
     return ClientDriverOffersState(
       responseDriverOffers: responseDriverOffers ?? this.responseDriverOffers,
-      responseAssignDriver: responseAssignDriver
+      responseAssignDriver: responseAssignDriver,
+      activeClientRequestId: activeClientRequestId ?? this.activeClientRequestId,
+      isRealtimeEnabled: isRealtimeEnabled ?? this.isRealtimeEnabled,
     );
   }
 
   @override
   // TODO: implement props
-  List<Object?> get props => [responseDriverOffers, responseAssignDriver];
+  List<Object?> get props => [responseDriverOffers, responseAssignDriver, activeClientRequestId, isRealtimeEnabled];
 
 }

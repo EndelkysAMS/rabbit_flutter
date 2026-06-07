@@ -8,8 +8,8 @@ import 'package:rabbit_flutter/src/presentation/pages/client/mapTrip/bloc/Client
 import 'package:rabbit_flutter/src/presentation/pages/widgets/DefaultImageUrl.dart';
 
 class ClientMapTripContent extends StatelessWidget {
-  ClientMapTripState state;
-  ClientRequestResponse? clientRequest;
+  final ClientMapTripState state;
+  final ClientRequestResponse? clientRequest;
 
   ClientMapTripContent(this.state, this.clientRequest);
 
@@ -68,24 +68,28 @@ class ClientMapTripContent extends StatelessWidget {
                   children: [
                     Text(
                       '${clientRequest?.driver?.name} ${clientRequest?.driver?.lastname}',
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w500),
                     ),
                     Text(
                       'Tel: ${clientRequest?.driver?.phone}',
-                      style: const TextStyle(fontSize: 12, color: Colors.black54),
+                      style:
+                          const TextStyle(fontSize: 12, color: Colors.black54),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       clientRequest?.bike?.brand ?? '',
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w500),
                     ),
                     Text(
                       '${clientRequest?.bike?.color} - ${clientRequest?.bike?.plate}',
-                      style: const TextStyle(fontSize: 12, color: Colors.black54),
+                      style:
+                          const TextStyle(fontSize: 12, color: Colors.black54),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Llega en ${state.timeAndDistanceValues?.duration.text} Aproximadamente',
+                      'Llega en ${state.timeAndDistanceValues?.duration.text ?? clientRequest?.googleDistanceMatrix?.duration.text ?? '--'} Aproximadamente',
                       style: const TextStyle(
                         fontSize: 12,
                         color: Color(0xFFFF8000),
@@ -99,7 +103,8 @@ class ClientMapTripContent extends StatelessWidget {
                 children: [
                   DefaultImageUrl(url: clientRequest?.driver?.image, width: 55),
                   const SizedBox(height: 8),
-                  Image.asset('assets/img/motorbike.png', height: 35, width: 35),
+                  Image.asset('assets/img/motorbike.png',
+                      height: 35, width: 35),
                 ],
               ),
             ],
@@ -119,7 +124,8 @@ class ClientMapTripContent extends StatelessWidget {
           _infoRow(
             icon: Icons.location_on,
             title: 'Ubicaciones',
-            subtitle: 'Desde: ${clientRequest?.pickupDescription}\nHasta: ${clientRequest?.destinationDescription}',
+            subtitle:
+                'Desde: ${clientRequest?.pickupDescription}\nHasta: ${clientRequest?.destinationDescription}',
           ),
           Divider(height: 1, thickness: 0.5, color: Colors.grey[200]),
           _infoRow(
@@ -154,7 +160,8 @@ class ClientMapTripContent extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                  style: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -162,7 +169,8 @@ class ClientMapTripContent extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     color: subtitleColor,
-                    fontWeight: subtitleBold ? FontWeight.bold : FontWeight.normal,
+                    fontWeight:
+                        subtitleBold ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
               ],
@@ -188,8 +196,8 @@ class ClientMapTripContent extends StatelessWidget {
               state.controller?.complete(controller);
               if (clientRequest != null) {
                 context.read<ClientMapTripBloc>().add(AddMarkerPickup(
-                    lat: clientRequest!.pickupPosition.y,
-                    lng: clientRequest!.pickupPosition.x));
+                    lat: clientRequest!.pickupPosition.x,
+                    lng: clientRequest!.pickupPosition.y));
               }
             }
           }

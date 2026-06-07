@@ -8,17 +8,26 @@ class DriverPosition {
     int idDriver;
     double lat;
     double lng;
+    String? name;
+    String? lastname;
+    String? image;
 
     DriverPosition({
         required this.idDriver,
         required this.lat,
         required this.lng,
+        this.name,
+        this.lastname,
+        this.image,
     });
 
     factory DriverPosition.fromJson(Map<String, dynamic> json) => DriverPosition(
         idDriver: json["id_driver"],
-        lat: json["lat"],
-        lng: json["lng"],
+        lat: (json["lat"] as num).toDouble(),
+        lng: (json["lng"] as num).toDouble(),
+        name: json["name"],
+        lastname: json["lastname"],
+        image: json["image"],
     );
 
     Map<String, dynamic> toJson() => {

@@ -5,17 +5,20 @@ import 'package:rabbit_flutter/src/presentation/pages/profile/info/bloc/ProfileI
 import 'package:rabbit_flutter/src/presentation/pages/profile/info/bloc/ProfileInfoState.dart';
 
 class ProfileInfoBloc extends Bloc<ProfileInfoEvent, ProfileInfoState> {
-
   AuthUseCases authUseCases;
 
-  ProfileInfoBloc(this.authUseCases): super(ProfileInfoState()) {
+  ProfileInfoBloc(this.authUseCases) : super(ProfileInfoState()) {
     on<GetUserInfo>((event, emit) async {
       AuthResponse authResponse = await authUseCases.getUserSession.run();
-      emit(
-        state.copyWith(
-          user: authResponse.user
-        )
-      );
+      emit(state.copyWith(
+        user: authResponse.user,
+        didLogout: false,
+      ));
+    });
+
+    on<LogoutProfile>((event, emit) async {
+      await authUseCases.logout.run();
+      emit(state.copyWith(didLogout: true));
     });
   }
-}  
+}

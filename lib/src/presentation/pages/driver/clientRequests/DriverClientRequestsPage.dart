@@ -21,11 +21,18 @@ class _DriverClientRequestsPageState extends State<DriverClientRequestsPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      context.read<DriverClientRequestsBloc>().add(InitDriverClientRequest());
-      context
-          .read<DriverClientRequestsBloc>()
-          .add(ListenNewClientRequestSocketIO());
-      // context.read<DriverClientRequestsBloc>().add(GetNearbyTripRequest());
+      final bloc = context.read<DriverClientRequestsBloc>();
+      bloc.add(InitDriverClientRequest());
+      bloc.add(ListenNewClientRequestSocketIO());
+
+      // Si se abrió desde la notificación push con un id concreto,
+      // centramos esa solicitud.
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final idClientRequest =
+          args is int ? args : int.tryParse(args?.toString() ?? '');
+      if (idClientRequest != null && idClientRequest > 0) {
+        bloc.add(SetActiveRequestById(idClientRequest: idClientRequest));
+      }
     });
   }
 
@@ -45,23 +52,43 @@ class _DriverClientRequestsPageState extends State<DriverClientRequestsPage> {
                 msg: responseCreateTripRequest.message,
                 toastLength: Toast.LENGTH_LONG);
           }
+          final response = state.response;
+          if (response is ErrorData &&
+              response.message.toLowerCase().contains('401')) {
+            Fluttertoast.showToast(
+                msg: response.message, toastLength: Toast.LENGTH_LONG);
+          }
         },
         child: BlocBuilder<DriverClientRequestsBloc, DriverClientRequestsState>(
             builder: (context, state) {
+          if (state.nearbyRequests.isNotEmpty) {
+            return ListView.builder(
+                itemCount: 1,
+                itemBuilder: (context, index) {
+                  return DriverClientRequestsItem(
+                      state, state.nearbyRequests.first);
+                });
+          }
           final response = state.response;
-          if (response is Loading) {
+          if (response is Loading && state.nearbyRequests.isEmpty) {
             return Center(child: CircularProgressIndicator());
           } else if (response is Success) {
             List<ClientRequestResponse> clientRequests =
                 response.data as List<ClientRequestResponse>;
-            print('Driver Request: ${clientRequests}');
+            if (clientRequests.isEmpty) {
+              return const Center(
+                child: Text('Sin solicitudes cercanas por el momento'),
+              );
+            }
             return ListView.builder(
-                itemCount: clientRequests.length,
+                itemCount: 1,
                 itemBuilder: (context, index) {
-                  return DriverClientRequestsItem(state, clientRequests[index]);
+                  return DriverClientRequestsItem(state, clientRequests.first);
                 });
           }
-          return Container();
+          return const Center(
+            child: Text('Sin solicitudes cercanas por el momento'),
+          );
         }),
       ),
     );

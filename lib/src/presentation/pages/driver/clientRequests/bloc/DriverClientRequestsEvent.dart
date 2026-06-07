@@ -3,11 +3,13 @@ import 'package:rabbit_flutter/src/presentation/utils/BlocFormItem.dart';
 
 abstract class DriverClientRequestsEvent {}
 
-class InitDriverClientRequest extends DriverClientRequestsEvent{}
+class InitDriverClientRequest extends DriverClientRequestsEvent {}
+
 class GetNearbyTripRequest extends DriverClientRequestsEvent {}
-class CreateDriverTripRequest extends DriverClientRequestsEvent {
-  final DriverTripRequest driverTripRequest;
-  CreateDriverTripRequest({required this.driverTripRequest});
+
+class SetActiveRequestById extends DriverClientRequestsEvent {
+  final int idClientRequest;
+  SetActiveRequestById({required this.idClientRequest});
 }
 
 class FareOfferedChange extends DriverClientRequestsEvent {
@@ -15,8 +17,18 @@ class FareOfferedChange extends DriverClientRequestsEvent {
   FareOfferedChange({required this.fareOffered});
 }
 
+class CreateDriverTripRequest extends DriverClientRequestsEvent {
+  final DriverTripRequest driverTripRequest;
+  CreateDriverTripRequest({required this.driverTripRequest});
+}
+
 class ListenNewClientRequestSocketIO extends DriverClientRequestsEvent {}
-class EmitNewDriverOfferSocketIO extends DriverClientRequestsEvent{
+
+class EnableRealtimeRequests extends DriverClientRequestsEvent {}
+
+class DisableRealtimeRequests extends DriverClientRequestsEvent {}
+
+class EmitNewDriverOfferSocketIO extends DriverClientRequestsEvent {
   final int idClientRequest;
   EmitNewDriverOfferSocketIO({required this.idClientRequest});
 }

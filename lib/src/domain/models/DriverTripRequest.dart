@@ -3,64 +3,73 @@ import 'dart:convert';
 import 'package:rabbit_flutter/src/domain/models/DriverBikeInfo.dart';
 import 'package:rabbit_flutter/src/domain/models/user.dart';
 
+DriverTripRequest driverTripRequestFromJson(String str) =>
+    DriverTripRequest.fromJson(json.decode(str));
 
-
-DriverTripRequest driverTripRequestFromJson(String str) => DriverTripRequest.fromJson(json.decode(str));
-
-String driverTripRequestToJson(DriverTripRequest data) => json.encode(data.toJson());
+String driverTripRequestToJson(DriverTripRequest data) =>
+    json.encode(data.toJson());
 
 class DriverTripRequest {
-    int? id;
-    int idDriver;
-    int idClientRequest;
-    double fareOffered;
-    double time;
-    double distance;
-    DateTime? createdAt;
-    DateTime? updatedAt;
-    User? driver;
-    DriverBikeInfo? bike;
-    
-    DriverTripRequest({
-        this.id,
-        required this.idDriver,
-        required this.idClientRequest,
-        required this.fareOffered,
-        required this.time,
-        required this.distance,
-        this.createdAt,
-        this.updatedAt,
-        this.driver,
-        this.bike
-    });
+  int? id;
+  int idDriver;
+  int idClientRequest;
+  double fareOffered;
+  double time;
+  double distance;
+  DateTime? createdAt;
+  DateTime? updatedAt;
+  User? driver;
+  DriverBikeInfo? bike;
 
-    factory DriverTripRequest.fromJson(Map<String, dynamic> json) => DriverTripRequest(
+  DriverTripRequest(
+      {this.id,
+      required this.idDriver,
+      required this.idClientRequest,
+      required this.fareOffered,
+      required this.time,
+      required this.distance,
+      this.createdAt,
+      this.updatedAt,
+      this.driver,
+      this.bike});
+
+  factory DriverTripRequest.fromJson(Map<String, dynamic> json) =>
+      DriverTripRequest(
         id: json["id"],
         idDriver: json["id_driver"],
         idClientRequest: json["id_client_request"],
-        fareOffered: json["fare_offered"] is String ? double.parse(json["fare_offered"]) : json["fare_offered"],
-        time: json["time"] is String ? double.parse(json["time"]) : json["time"],
-        distance: json["distance"] is String ? double.parse(json['distance']) : json['distance'],
-        createdAt: DateTime.parse(json["created_at"]),
-        updatedAt: DateTime.parse(json["updated_at"]),
-        driver: User.fromJson(json["driver"]),
-        bike: DriverBikeInfo.fromJson(json["bike"]),
-    );
+        fareOffered: _toDouble(json["fare_offered"]),
+        time: _toDouble(json["time"]),
+        distance: _toDouble(json["distance"]),
+        createdAt: json["created_at"] != null
+            ? DateTime.tryParse(json["created_at"])
+            : null,
+        updatedAt: json["updated_at"] != null
+            ? DateTime.tryParse(json["updated_at"])
+            : null,
+        driver: json["driver"] != null ? User.fromJson(json["driver"]) : null,
+        bike:
+            json["bike"] != null ? DriverBikeInfo.fromJson(json["bike"]) : null,
+      );
 
-    static List<DriverTripRequest> fromJsonList(List<dynamic> jsonList) {
-      List<DriverTripRequest> toList = [];
-      jsonList.forEach((json) { 
-        DriverTripRequest driverTripRequest = DriverTripRequest.fromJson(json);
-        toList.add(driverTripRequest);
-      });
-      return toList;
-    }
+  static List<DriverTripRequest> fromJsonList(List<dynamic> jsonList) {
+    return jsonList
+        .whereType<Map<String, dynamic>>()
+        .map(DriverTripRequest.fromJson)
+        .toList();
+  }
 
-    Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => {
         "id_driver": idDriver,
         "id_client_request": idClientRequest,
         "fare_offered": fareOffered,
         "time": time,
         "distance": distance,
-    };
+      };
+
+  static double _toDouble(dynamic value) {
+    if (value == null) return 0;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? 0;
+  }
 }

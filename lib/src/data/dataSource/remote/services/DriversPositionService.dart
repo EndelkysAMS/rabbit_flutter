@@ -9,6 +9,28 @@ class DriversPositionService {
   Future<String> token;
   DriversPositionService(this.token);
 
+  dynamic _safeDecode(http.Response response) {
+    final body = response.body.trim();
+    if (body.isEmpty) return null;
+    final contentType = response.headers['content-type'] ?? '';
+    if (!contentType.toLowerCase().contains('application/json')) {
+      return {'message': body.length > 300 ? body.substring(0, 300) : body};
+    }
+    try {
+      return json.decode(body);
+    } catch (_) {
+      return {'message': body.length > 300 ? body.substring(0, 300) : body};
+    }
+  }
+
+  String _errorMessage(dynamic data, {String fallback = 'Error inesperado'}) {
+    if (data is Map && data['message'] != null) {
+      return listToString(data['message']);
+    }
+    if (data is String && data.isNotEmpty) return data;
+    return fallback;
+  }
+
   Future<Resource<bool>> create(DriverPosition driverPosition) async {
     try {
       Uri url = Uri.http(ApiConfig.API_RABBIT, '/drivers-position');
@@ -18,13 +40,13 @@ class DriversPositionService {
       };
       String body = json.encode(driverPosition);
       final response = await http.post(url, headers: headers, body: body);
-      final data = json.decode(response.body);
+      final data = _safeDecode(response);
       
       
       if (response.statusCode == 200 || response.statusCode == 201) {
         return Success(true);
       } else {
-        return ErrorData(listToString(data['message']));
+        return ErrorData(_errorMessage(data));
       }
     } catch (e) {
       print('Error: $e');
@@ -41,14 +63,17 @@ class DriversPositionService {
         'Authorization': await token
       };
       final response = await http.get(url, headers: headers);
-      final data = json.decode(response.body);
+      final data = _safeDecode(response);
       
       
       if (response.statusCode == 200 || response.statusCode == 201) {
+        if (data is! Map<String, dynamic>) {
+          return ErrorData('Respuesta inválida del servidor');
+        }
         DriverPosition driverPosition = DriverPosition.fromJson(data);
         return Success(driverPosition);
       } else {
-        return ErrorData(listToString(data['message']));
+        return ErrorData(_errorMessage(data));
       }
     } catch (e) {
       print('Error: $e');
@@ -65,11 +90,11 @@ class DriversPositionService {
         'Authorization': await token
       };
       final response = await http.delete(url, headers: headers);
-      final data = json.decode(response.body);
+      final data = _safeDecode(response);
       if (response.statusCode == 200 || response.statusCode == 201) {
         return Success(true);
       } else {
-        return ErrorData(listToString(data['message']));
+        return ErrorData(_errorMessage(data));
       }
     } catch (e) {
       print('Error: $e');

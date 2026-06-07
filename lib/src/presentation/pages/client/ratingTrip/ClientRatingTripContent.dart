@@ -8,11 +8,11 @@ import 'package:rabbit_flutter/src/presentation/pages/client/ratingTrip/bloc/Cli
 import 'package:rabbit_flutter/src/presentation/pages/widgets/DefaultButton.dart';
 
 class ClientRatingTripContent extends StatelessWidget {
-  
   final ClientRatingTripState state;
   final ClientRequestResponse? clientRequestResponse;
 
-  const ClientRatingTripContent(this.state, this.clientRequestResponse, {super.key});
+  const ClientRatingTripContent(this.state, this.clientRequestResponse,
+      {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,13 +32,19 @@ class ClientRatingTripContent extends StatelessWidget {
         _textRateYourClient(),
         _ratingBar(context),
         const Spacer(),
-        DefaultButton(
-          text: 'Calificar Conductor',
-          onPressed: () {
-            context.read<ClientRatingTripBloc>().add(
-              UpdateRating(idClientRequest: clientRequestResponse!.id),
-            );
-          },
+        Padding(
+          padding: const EdgeInsets.only(bottom: 36),
+          child: DefaultButton(
+            text: 'Calificar Conductor',
+            width: 240,
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            onPressed: () {
+              context.read<ClientRatingTripBloc>().add(
+                    UpdateRating(idClientRequest: clientRequestResponse!.id),
+                  );
+            },
+          ),
         ),
       ],
     );

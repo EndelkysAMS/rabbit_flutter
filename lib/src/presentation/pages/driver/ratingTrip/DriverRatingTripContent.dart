@@ -9,11 +9,11 @@ import 'package:rabbit_flutter/src/presentation/pages/driver/ratingTrip/bloc/Dri
 import 'package:rabbit_flutter/src/presentation/pages/widgets/DefaultButton.dart';
 
 class DriverRatingTripContent extends StatelessWidget {
+  final DriverRatingTripState driverRatingTripState;
+  final ClientRequestResponse? clientRequestResponse;
 
-  DriverRatingTripState driverRatingTripState;
-  ClientRequestResponse? clientRequestResponse;
-
-  DriverRatingTripContent(this.driverRatingTripState, this.clientRequestResponse);
+  DriverRatingTripContent(
+      this.driverRatingTripState, this.clientRequestResponse);
 
   @override
   Widget build(BuildContext context) {
@@ -33,24 +33,27 @@ class DriverRatingTripContent extends StatelessWidget {
         _textRateYourClient(),
         _ratingBar(context),
         Spacer(),
-        DefaultButton(
-          text: 'Calificar Cliente', 
-          onPressed: () {
-            context.read<DriverRatingTripBloc>().add(UpdateRating(idClientRequest: clientRequestResponse!.id));
-          }
+        Padding(
+          padding: const EdgeInsets.only(bottom: 36),
+          child: DefaultButton(
+              text: 'Calificar Cliente',
+              width: 240,
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              onPressed: () {
+                context.read<DriverRatingTripBloc>().add(
+                    UpdateRating(idClientRequest: clientRequestResponse!.id));
+              }),
         )
       ],
     );
-  } 
+  }
 
   Widget _textFareValue() {
     return Text(
       '${clientRequestResponse?.fareAssigned}',
       style: TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 35,
-        color: Colors.yellow
-      ),
+          fontWeight: FontWeight.bold, fontSize: 35, color: Colors.yellow),
     );
   }
 
@@ -58,10 +61,7 @@ class DriverRatingTripContent extends StatelessWidget {
     return Text(
       'Valor del Viaje',
       style: TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 18,
-        color: Colors.white
-      ),
+          fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
     );
   }
 
@@ -69,64 +69,58 @@ class DriverRatingTripContent extends StatelessWidget {
     return Text(
       'Califica a tu Cliente',
       style: TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 18,
-        color: Colors.white
-      ),
+          fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
     );
   }
 
   Widget _ratingBar(BuildContext context) {
     return RatingBar.builder(
-      itemBuilder: (context, _) => Icon(
-        Icons.star,
-        color: Colors.amber,
-      ), 
-      initialRating: 0,
-      itemCount: 5,
-      direction: Axis.horizontal,
-      allowHalfRating: true,
-      unratedColor: Colors.grey[300],
-      onRatingUpdate: (rating) {
-        context.read<DriverRatingTripBloc>().add(RatingChanged(rating: rating));
-      }
-    );
+        itemBuilder: (context, _) => Icon(
+              Icons.star,
+              color: Colors.amber,
+            ),
+        initialRating: 0,
+        itemCount: 5,
+        direction: Axis.horizontal,
+        allowHalfRating: true,
+        unratedColor: Colors.grey[300],
+        onRatingUpdate: (rating) {
+          context
+              .read<DriverRatingTripBloc>()
+              .add(RatingChanged(rating: rating));
+        });
   }
 
   Widget _listTileDestination() {
     return ListTile(
-      leading: Icon(Icons.flag, color: Colors.white,),
+      leading: Icon(
+        Icons.flag,
+        color: Colors.white,
+      ),
       title: Text(
         'Hasta',
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold
-        ),
+        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       ),
       subtitle: Text(
         clientRequestResponse?.destinationDescription ?? '',
-        style: TextStyle(
-          color: Colors.white
-        ),
+        style: TextStyle(color: Colors.white),
       ),
     );
   }
 
   Widget _listTilePickup() {
     return ListTile(
-      leading: Icon(Icons.location_on, color: Colors.white,),
+      leading: Icon(
+        Icons.location_on,
+        color: Colors.white,
+      ),
       title: Text(
         'desde',
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold
-        ),
+        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       ),
       subtitle: Text(
         clientRequestResponse?.pickupDescription ?? '',
-        style: TextStyle(
-          color: Colors.white
-        ),
+        style: TextStyle(color: Colors.white),
       ),
     );
   }
@@ -135,10 +129,7 @@ class DriverRatingTripContent extends StatelessWidget {
     return Text(
       'Tu viaje ha finalizado',
       style: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-        color: Colors.white
-      ),
+          fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
     );
   }
 

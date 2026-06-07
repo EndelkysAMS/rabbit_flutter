@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:rabbit_flutter/src/domain/models/DriverBikeInfo.dart';
 
-
 ClientRequestResponse clientRequestResponseFromJson(String str) =>
     ClientRequestResponse.fromJson(json.decode(str));
 
@@ -48,42 +47,104 @@ class ClientRequestResponse {
       this.bike});
 
   static List<ClientRequestResponse> fromJsonList(List<dynamic> jsonList) {
-    List<ClientRequestResponse> toList = [];
-    jsonList.forEach((json) {
-      ClientRequestResponse clientRequestResponse =
-          ClientRequestResponse.fromJson(json);
-      toList.add(clientRequestResponse);
-    });
-    return toList;
+    return jsonList
+        .whereType<Map>()
+        .map((json) =>
+            ClientRequestResponse.fromJson(Map<String, dynamic>.from(json)))
+        .toList();
   }
 
-  factory ClientRequestResponse.fromJson(Map<String, dynamic> json) {
+  /// Construye el viaje directamente desde el payload del socket
+  /// `driver_assigned/{idDriver}` (objeto `trip`). El backend usa
+  /// `id_client_request` en lugar de `id` y puede omitir `updated_at`.
+  factory ClientRequestResponse.fromTripPayload(Map<String, dynamic> json) {
+    double? toDouble(dynamic value) {
+      if (value == null) return null;
+      if (value is num) return value.toDouble();
+      return double.tryParse(value.toString());
+    }
+
     return ClientRequestResponse(
-      id: json["id"],
+      id: json["id"] ?? json["id_client_request"],
       idClient: json["id_client"],
-      fareOffered: json["fare_offered"] is double
-          ? json["fare_offered"].toString()
-          : json["fare_offered"],
-      pickupDescription: json["pickup_description"],
-      destinationDescription: json["destination_description"],
-      updatedAt: DateTime.parse(json["updated_at"]),
+      fareOffered: json["fare_offered"]?.toString() ?? '',
+      pickupDescription: json["pickup_description"] ?? '',
+      destinationDescription: json["destination_description"] ?? '',
+      updatedAt: json["updated_at"] != null
+          ? DateTime.parse(json["updated_at"])
+          : DateTime.now(),
       createdAt: json["created_at"] != null
           ? DateTime.parse(json["created_at"])
           : null,
       client: Client.fromJson(json["client"]),
       pickupPosition: Position.fromJson(json["pickup_position"]),
       destinationPosition: Position.fromJson(json["destination_position"]),
-      distance: json["distance"]?.toDouble(),
-      timeDifference: json["time_difference"] is int
-          ? json["time_difference"].toString()
-          : json["time_difference"],
+      distance: toDouble(json["distance"]),
+      timeDifference: json["time_difference"]?.toString(),
       driver: json["driver"] != null ? Client.fromJson(json["driver"]) : null,
       idDriverAssigned: json["id_driver_assigned"],
-      fareAssigned: json["fare_assigned"]?.toDouble(),
+      fareAssigned: toDouble(json["fare_assigned"]),
       googleDistanceMatrix: json["google_distance_matrix"] != null
           ? GoogleDistanceMatrix.fromJson(json["google_distance_matrix"])
           : null,
       bike: json["bike"] != null ? DriverBikeInfo.fromJson(json["bike"]) : null,
+    );
+  }
+
+  factory ClientRequestResponse.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic value, {int fallback = 0}) {
+      if (value is int) return value;
+      return int.tryParse(value?.toString() ?? '') ?? fallback;
+    }
+
+    double? toDouble(dynamic value) {
+      if (value == null) return null;
+      if (value is num) return value.toDouble();
+      return double.tryParse(value.toString());
+    }
+
+    String toStringValue(dynamic value, {String fallback = ''}) {
+      if (value == null) return fallback;
+      return value.toString();
+    }
+
+    Map<String, dynamic> asMap(dynamic value) {
+      if (value is Map<String, dynamic>) return value;
+      if (value is Map) return Map<String, dynamic>.from(value);
+      return <String, dynamic>{};
+    }
+
+    return ClientRequestResponse(
+      id: toInt(json["id"] ?? json["id_client_request"]),
+      idClient: toInt(json["id_client"]),
+      fareOffered: toStringValue(json["fare_offered"]),
+      pickupDescription: toStringValue(json["pickup_description"]),
+      destinationDescription: toStringValue(json["destination_description"]),
+      updatedAt: json["updated_at"] != null
+          ? DateTime.parse(json["updated_at"])
+          : DateTime.now(),
+      createdAt: json["created_at"] != null
+          ? DateTime.parse(json["created_at"])
+          : null,
+      client: Client.fromJson(asMap(json["client"])),
+      pickupPosition: Position.fromJson(asMap(json["pickup_position"])),
+      destinationPosition:
+          Position.fromJson(asMap(json["destination_position"])),
+      distance: toDouble(json["distance"]),
+      timeDifference: toStringValue(json["time_difference"], fallback: ''),
+      driver: json["driver"] != null
+          ? Client.fromJson(asMap(json["driver"]))
+          : null,
+      idDriverAssigned: json["id_driver_assigned"] != null
+          ? toInt(json["id_driver_assigned"])
+          : null,
+      fareAssigned: toDouble(json["fare_assigned"]),
+      googleDistanceMatrix: json["google_distance_matrix"] != null
+          ? GoogleDistanceMatrix.fromJson(asMap(json["google_distance_matrix"]))
+          : null,
+      bike: json["bike"] != null
+          ? DriverBikeInfo.fromJson(asMap(json["bike"]))
+          : null,
     );
   }
 
@@ -121,10 +182,10 @@ class Client {
   });
 
   factory Client.fromJson(Map<String, dynamic> json) => Client(
-        name: json["name"],
+        name: json["name"]?.toString() ?? '',
         image: json["image"],
-        phone: json["phone"],
-        lastname: json["lastname"],
+        phone: json["phone"]?.toString() ?? '',
+        lastname: json["lastname"]?.toString() ?? '',
       );
 
   Map<String, dynamic> toJson() => {
@@ -145,8 +206,8 @@ class Position {
   });
 
   factory Position.fromJson(Map<String, dynamic> json) => Position(
-        x: json["x"]?.toDouble(),
-        y: json["y"]?.toDouble(),
+        x: (json["x"] as num?)?.toDouble() ?? 0,
+        y: (json["y"] as num?)?.toDouble() ?? 0,
       );
 
   Map<String, dynamic> toJson() => {
@@ -168,9 +229,11 @@ class GoogleDistanceMatrix {
 
   factory GoogleDistanceMatrix.fromJson(Map<String, dynamic> json) =>
       GoogleDistanceMatrix(
-        distance: Distance.fromJson(json["distance"]),
-        duration: Distance.fromJson(json["duration"]),
-        status: json["status"],
+        distance: Distance.fromJson(
+            Map<String, dynamic>.from((json["distance"] as Map?) ?? {})),
+        duration: Distance.fromJson(
+            Map<String, dynamic>.from((json["duration"] as Map?) ?? {})),
+        status: json["status"]?.toString() ?? '',
       );
 
   Map<String, dynamic> toJson() => {
@@ -190,8 +253,10 @@ class Distance {
   });
 
   factory Distance.fromJson(Map<String, dynamic> json) => Distance(
-        text: json["text"],
-        value: json["value"],
+        text: json["text"]?.toString() ?? '',
+        value: (json["value"] is int)
+            ? json["value"]
+            : int.tryParse(json["value"]?.toString() ?? '') ?? 0,
       );
 
   Map<String, dynamic> toJson() => {

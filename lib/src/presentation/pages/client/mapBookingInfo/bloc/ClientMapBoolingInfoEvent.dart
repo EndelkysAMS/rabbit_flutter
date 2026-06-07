@@ -34,6 +34,7 @@ class ChangeMapCameraPosition extends ClientMapBookingInfoEvent {
 class CreateClientRequest extends ClientMapBookingInfoEvent {}
 class GetTimeAndDistanceValues extends ClientMapBookingInfoEvent {}
 class AddPolyline extends ClientMapBookingInfoEvent {}
+class FitRouteCamera extends ClientMapBookingInfoEvent {}
 class EmitNewClientRequestSocketIO extends ClientMapBookingInfoEvent {
   final int idClientRequest;
   EmitNewClientRequestSocketIO({required this.idClientRequest}); 

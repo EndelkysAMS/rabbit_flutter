@@ -50,6 +50,7 @@ class LoginContent extends StatelessWidget {
                     },
                     hintText: "Contraseña",
                     icon: Icons.lock_outline,
+                    obscureText: true,
                   ),
                   const SizedBox(height: 16),
                   DefaultButton(

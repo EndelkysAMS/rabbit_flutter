@@ -34,6 +34,7 @@ void main() async {
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   if (!kIsWeb) {
+    await requestFcmPermission();
     await setupFlutterNotifications();
   }
 

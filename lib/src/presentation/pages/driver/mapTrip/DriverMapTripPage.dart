@@ -16,32 +16,54 @@ class DriverMapTripPage extends StatefulWidget {
 }
 
 class _DriverMapTripPageState extends State<DriverMapTripPage> {
-
   int? idClientRequest;
+  bool _isInitialized = false;
+  dynamic _lastArgs;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      if (idClientRequest != null) {
-        context.read<DriverMapTripBloc>().add(InitDriverMapTripEvent());
-        context.read<DriverMapTripBloc>().add(GetClientRequest(idClientRequest: idClientRequest!));
-      }
-    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (_isInitialized && args == _lastArgs) return;
+    _lastArgs = args;
+    final bloc = context.read<DriverMapTripBloc>();
+    bloc.add(InitDriverMapTripEvent());
+
+    if (args is ClientRequestResponse) {
+      // Viaje precargado desde el socket driver_assigned: sin segundo GET.
+      idClientRequest = args.id;
+      bloc.add(SetClientRequestData(clientRequest: args));
+      _isInitialized = true;
+      return;
+    }
+
+    final parsedId = args is int ? args : int.tryParse(args?.toString() ?? '');
+    if (parsedId == null || parsedId <= 0) return;
+    idClientRequest = parsedId;
+    bloc.add(GetClientRequest(idClientRequest: idClientRequest!));
+    _isInitialized = true;
   }
 
   @override
   Widget build(BuildContext context) {
-    idClientRequest = ModalRoute.of(context)?.settings.arguments as int;
+    idClientRequest ??= (() {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is int) return args;
+      return int.tryParse(args?.toString() ?? '');
+    })();
     return Scaffold(
       body: BlocListener<DriverMapTripBloc, DriverMapTripState>(
         listener: (context, state) {
           final responseClientRequest = state.responseGetClientRequest;
-          if (responseClientRequest is Success) {
-            final data = responseClientRequest.data as ClientRequestResponse;
-          }
-          else if (responseClientRequest is ErrorData) {
-            Fluttertoast.showToast(msg: responseClientRequest.message, toastLength: Toast.LENGTH_LONG);
+          if (responseClientRequest is ErrorData) {
+            Fluttertoast.showToast(
+                msg: responseClientRequest.message,
+                toastLength: Toast.LENGTH_LONG);
           }
         },
         child: BlocBuilder<DriverMapTripBloc, DriverMapTripState>(
@@ -51,7 +73,12 @@ class _DriverMapTripPageState extends State<DriverMapTripPage> {
               final data = responseClientRequest.data as ClientRequestResponse;
               return DriverMapTripContent(state, data, null);
             }
-            return Container();
+            if (responseClientRequest is ErrorData) {
+              return const Center(
+                child: Text('No se pudo cargar el viaje'),
+              );
+            }
+            return const Center(child: CircularProgressIndicator());
           },
         ),
       ),
