@@ -2,35 +2,55 @@ import 'package:flutter/material.dart';
 import 'package:rabbit_flutter/src/domain/models/Role.dart';
 
 class RolesItem extends StatelessWidget {
+  final Role role;
 
-  Role role;
+  const RolesItem(this.role, {super.key});
 
-  RolesItem(this.role);
+  bool get _isAdminLinea =>
+      role.id == '3' ||
+      role.route == 'admin/home' ||
+      role.name.toUpperCase().contains('ADMIN');
+
+  bool get _isDriverRole =>
+      role.route == 'driver/home' ||
+      role.name.toUpperCase().contains('CONDUCTOR') ||
+      role.name.toUpperCase().contains('DRIVER');
+
+  bool get _isClientRole =>
+      role.route == 'client/home' ||
+      role.name.toUpperCase().contains('CLIENTE') ||
+      role.name.toUpperCase().contains('CLIENT');
+
+  String _roleAsset() {
+    if (_isAdminLinea) return 'assets/img/role_admin.png';
+    if (_isDriverRole) return 'assets/img/role_driver.png';
+    if (_isClientRole) return 'assets/img/role_client.png';
+    return 'assets/img/role_client.png';
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamedAndRemoveUntil(context, role.route, (route) => false);
+        final targetRoute = _isAdminLinea ? 'admin/home' : role.route;
+        Navigator.pushNamedAndRemoveUntil(context, targetRoute, (route) => false);
       },
       child: Column(
         children: [
           Container(
-            margin: EdgeInsets.only(bottom: 10, top: 15),
+            margin: const EdgeInsets.only(bottom: 10, top: 15),
             height: 150,
-            child: FadeInImage(
-              image: NetworkImage(role.image),
+            child: Image.asset(
+              _roleAsset(),
               fit: BoxFit.contain,
-              fadeInDuration: Duration(seconds: 1),
-              placeholder: AssetImage('assets/img/no-image.jpg'),
             ),
           ),
           Text(
             role.name,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 21,
               fontWeight: FontWeight.bold,
-              color: Colors.white
+              color: Colors.white,
             ),
           )
         ],

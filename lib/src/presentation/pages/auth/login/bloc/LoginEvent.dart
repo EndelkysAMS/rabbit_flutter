@@ -7,17 +7,17 @@ class LoginInitEvent extends LoginEvent {}
 
 class EmailChanged extends LoginEvent {
   final BlocFormItem email;
-  EmailChanged({ required this.email });
+  EmailChanged({required this.email});
 }
 
 class PasswordChanged extends LoginEvent {
   final BlocFormItem password;
-  PasswordChanged({ required this.password });
+  PasswordChanged({required this.password});
 }
 
 class SaveUserSession extends LoginEvent {
   final AuthResponse authResponse;
-  SaveUserSession({ required this.authResponse });
+  SaveUserSession({required this.authResponse});
 }
 
 class UpdateNotificationToken extends LoginEvent {
@@ -26,4 +26,13 @@ class UpdateNotificationToken extends LoginEvent {
   UpdateNotificationToken({required this.id, this.token});
 }
 
-class FormSubmit extends LoginEvent {}
+class FormSubmit extends LoginEvent {
+  final String? email;
+  final String? password;
+
+  FormSubmit({this.email, this.password});
+}
+
+class TogglePasswordVisibility extends LoginEvent {}
+
+class ClearLoginForm extends LoginEvent {}

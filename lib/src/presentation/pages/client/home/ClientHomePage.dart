@@ -49,7 +49,7 @@ class _ClientHomePageState extends State<ClientHomePage> {
                    color: const Color(0xFFFF8000),
                   ),
                   child: Text(
-                    'Menu del cliente',
+                    'Menú',
                     style: TextStyle(color: Colors.white),
                   )
                 ),

@@ -7,92 +7,98 @@ import 'package:rabbit_flutter/src/presentation/pages/widgets/DefaultTextField.d
 import 'package:rabbit_flutter/src/presentation/utils/BlocFormItem.dart';
 
 class DriverBikeInfoContent extends StatelessWidget {
-
   final DriverBikeInfoState state;
 
   const DriverBikeInfoContent(this.state, {super.key});
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
     return Form(
       key: state.formKey,
-      child: Stack(
-        children: [
-          Column(
-            children: [
-              _headerProfile(context),
-              const Spacer(),
-              _actionProfile(context, 'Actualizar Datos', Icons.check),
-              const SizedBox(height: 35),
-            ],
-          ),
-          _cardUserInfo(context),
-        ],
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(bottom: bottomInset + 24),
+        child: Column(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                _headerProfile(context),
+                _cardUserInfo(context),
+              ],
+            ),
+            _actionProfile(context, 'Actualizar Datos', Icons.check),
+          ],
+        ),
       ),
     );
   }
 
   Widget _cardUserInfo(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(left: 35, right: 35, top: 100),
+      margin: EdgeInsets.only(
+        left: 35,
+        right: 35,
+        top: MediaQuery.of(context).size.height * 0.14,
+      ),
       width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height * 0.35,
       child: Card(
         color: Colors.white,
         surfaceTintColor: Colors.white,
-        child: Column(
-          children: [
-            const SizedBox(height: 40),
-            Padding(
-              padding: const EdgeInsets.only(left: 30, right: 30, top: 15),
-              child: DefaultTextField(
-                hintText: 'Marca de la moto',
-                icon: Icons.person,
-                backgroundColor: Colors.grey[200]!,
-                initialValue: state.brand.value,
-                onChanged: (text) {
-                  context.read<DriverBikeInfoBloc>().add(
-                      BrandChanged(brand: BlocFormItem(value: text)));
-                },
-                validator: (value) {
-                  return state.brand.error;
-                },
+        child: Padding(
+          padding: const EdgeInsets.only(top: 24, bottom: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 30, right: 30, top: 15),
+                child: DefaultTextField(
+                  hintText: 'Marca de la moto',
+                  icon: Icons.person,
+                  backgroundColor: Colors.grey[200]!,
+                  initialValue: state.brand.value,
+                  onChanged: (text) {
+                    context.read<DriverBikeInfoBloc>().add(
+                          BrandChanged(brand: BlocFormItem(value: text)),
+                        );
+                  },
+                  validator: (value) => state.brand.error,
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 30, right: 30, top: 15),
-              child: DefaultTextField(
-                hintText: 'Placa de la moto',
-                icon: Icons.person_outline,
-                backgroundColor: Colors.grey[200]!,
-                initialValue: state.plate.value,
-                keyboardType: TextInputType.phone,
-                onChanged: (text) {
-                  context.read<DriverBikeInfoBloc>().add(
-                      PlateChanged(plate: BlocFormItem(value: text)));
-                },
-                validator: (value) {
-                  return state.plate.error;
-                },
+              Padding(
+                padding: const EdgeInsets.only(left: 30, right: 30, top: 15),
+                child: DefaultTextField(
+                  hintText: 'Placa de la moto',
+                  icon: Icons.person_outline,
+                  backgroundColor: Colors.grey[200]!,
+                  initialValue: state.plate.value,
+                  keyboardType: TextInputType.phone,
+                  onChanged: (text) {
+                    context.read<DriverBikeInfoBloc>().add(
+                          PlateChanged(plate: BlocFormItem(value: text)),
+                        );
+                  },
+                  validator: (value) => state.plate.error,
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 30, right: 30, top: 15),
-              child: DefaultTextField(
-                hintText: 'Color',
-                icon: Icons.phone,
-                initialValue: state.color.value,
-                backgroundColor: Colors.grey[200]!,
-                onChanged: (text) {
-                  context.read<DriverBikeInfoBloc>().add(
-                      ColorChanged(color: BlocFormItem(value: text)));
-                },
-                validator: (value) {
-                  return state.color.error;
-                },
+              Padding(
+                padding: const EdgeInsets.only(left: 30, right: 30, top: 15),
+                child: DefaultTextField(
+                  hintText: 'Color',
+                  icon: Icons.phone,
+                  initialValue: state.color.value,
+                  backgroundColor: Colors.grey[200]!,
+                  onChanged: (text) {
+                    context.read<DriverBikeInfoBloc>().add(
+                          ColorChanged(color: BlocFormItem(value: text)),
+                        );
+                  },
+                  validator: (value) => state.color.error,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -122,10 +128,7 @@ class DriverBikeInfoContent extends StatelessWidget {
               color: Color(0xFFFF8000),
               borderRadius: BorderRadius.all(Radius.circular(50)),
             ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-            ),
+            child: Icon(icon, color: Colors.white),
           ),
         ),
       ),
@@ -135,8 +138,10 @@ class DriverBikeInfoContent extends StatelessWidget {
   Widget _headerProfile(BuildContext context) {
     return Container(
       alignment: Alignment.topCenter,
-      padding: const EdgeInsets.only(top: 30),
-      height: MediaQuery.of(context).size.height * 0.3,
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 24,
+        bottom: MediaQuery.of(context).size.height * 0.18,
+      ),
       width: MediaQuery.of(context).size.width,
       decoration: const BoxDecoration(
         color: Color(0xFFFF8000),

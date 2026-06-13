@@ -49,14 +49,19 @@ class ProfileInfoContent extends StatelessWidget {
               child: AspectRatio(
                 aspectRatio: 1,
                 child: ClipOval(
-                  child: user != null && user!.image != null
+                  child: user != null &&
+                          user!.image != null &&
+                          user!.image!.isNotEmpty
                       ? FadeInImage.assetNetwork(
                           placeholder: 'assets/img/user_image.jpg',
                           image: user!.image!,
                           fit: BoxFit.cover,
                           fadeInDuration: Duration(seconds: 1),
                         )
-                      : Container(),
+                      : Image.asset(
+                          'assets/img/user_image.jpg',
+                          fit: BoxFit.cover,
+                        ),
                 ),
               ),
             ),

@@ -1,4 +1,5 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:rabbit_flutter/src/domain/models/StatusTrip.dart';
 
 abstract class ClientMapTripEvent {}
 
@@ -73,6 +74,11 @@ class AddMarkerDriver extends ClientMapTripEvent {
 class ListenTripNewDriverPosition extends ClientMapTripEvent {}
 
 class ListenUpdateStatusClientRequestSocketIO extends ClientMapTripEvent {}
+
+class SetTripStatus extends ClientMapTripEvent {
+  final StatusTrip status;
+  SetTripStatus({required this.status});
+}
 
 class SetDriverLatLng extends ClientMapTripEvent {
   final double lat;

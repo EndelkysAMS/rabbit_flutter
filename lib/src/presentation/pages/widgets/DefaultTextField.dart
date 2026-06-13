@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class DefaultTextField extends StatelessWidget {
   final String hintText;
   final String? initialValue;
+  final TextEditingController? controller;
   final Function(String text) onChanged;
   final IconData icon;
   final bool obscureText;
@@ -10,6 +11,8 @@ class DefaultTextField extends StatelessWidget {
   final double bottomMargin;
   final String? Function(String?)? validator;
   final Color backgroundColor;
+  final IconData? suffixIcon;
+  final VoidCallback? onSuffixTap;
 
   const DefaultTextField({
     super.key,
@@ -21,7 +24,10 @@ class DefaultTextField extends StatelessWidget {
     this.bottomMargin = 16,
     this.validator,
     this.backgroundColor = Colors.white,
-    this.initialValue
+    this.initialValue,
+    this.controller,
+    this.suffixIcon,
+    this.onSuffixTap,
   });
 
   @override
@@ -29,10 +35,11 @@ class DefaultTextField extends StatelessWidget {
     return Container(
       margin: EdgeInsets.only(bottom: bottomMargin),
       child: TextFormField(
+        controller: controller,
         onChanged: (text) {
           onChanged(text);
         },
-        initialValue: initialValue,
+        initialValue: controller == null ? initialValue : null,
         validator: validator,
         obscureText: obscureText,
         keyboardType: keyboardType,
@@ -54,12 +61,18 @@ class DefaultTextField extends StatelessWidget {
           ),
           filled: true,
           fillColor: backgroundColor,
-          contentPadding: const EdgeInsets.symmetric(
-              vertical: 16, horizontal: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
           ),
+          suffixIcon: suffixIcon != null
+              ? IconButton(
+                  onPressed: onSuffixTap,
+                  icon: Icon(suffixIcon, color: Colors.grey),
+                )
+              : null,
         ),
       ),
     );

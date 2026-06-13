@@ -49,11 +49,23 @@ class ClientMapTripBloc extends Bloc<ClientMapTripEvent, ClientMapTripState> {
     });
   }
 
+  ({double lat, double lng}) _routeTarget(ClientRequestResponse request) {
+    final toDestination = state.statusTrip == StatusTrip.ARRIVED;
+    return (
+      lat: toDestination
+          ? request.destinationPosition.x
+          : request.pickupPosition.x,
+      lng: toDestination
+          ? request.destinationPosition.y
+          : request.pickupPosition.y,
+    );
+  }
+
   Future<void> _ensureDriverBikeIconLoaded() async {
     if (_driverBikeIconReady) return;
     try {
       _driverBikeIcon = await BitmapDescriptor.fromAssetImage(
-        const ImageConfiguration(size: Size(44, 44)),
+        const ImageConfiguration(size: Size(36, 36)),
         'assets/img/moto_pin.png',
       );
       _driverBikeIconReady = true;
@@ -79,8 +91,10 @@ class ClientMapTripBloc extends Bloc<ClientMapTripEvent, ClientMapTripState> {
     });
 
     on<AddMarkerPickup>((event, emit) async {
-      BitmapDescriptor pickUpDescriptor = await geolocatorUseCases.createMarker
-          .run('assets/img/person_location.png');
+      final pickUpDescriptor = await BitmapDescriptor.fromAssetImage(
+        const ImageConfiguration(size: Size(48, 48)),
+        'assets/img/person_location.png',
+      );
       Marker markerPickUp = geolocatorUseCases.getMarker.run(
           'pickup',
           event.lat,
@@ -167,21 +181,32 @@ class ClientMapTripBloc extends Bloc<ClientMapTripEvent, ClientMapTripState> {
       emit(state.copyWith(responseGetClientRequest: response));
       if (response is Success) {
         final data = response.data as ClientRequestResponse;
+        print(
+            'client trip loaded id=${data.id} idDriverAssigned=${data.idDriverAssigned}');
         emit(state.copyWith(clientRequestResponse: data));
         add(AddMarkerPickup(
             lat: data.pickupPosition.x, lng: data.pickupPosition.y));
         add(AddMarkerDestination(
             lat: data.destinationPosition.x, lng: data.destinationPosition.y));
+        add(ListenTripNewDriverPosition());
         add(ListenUpdateStatusClientRequestSocketIO());
+        _startDriverPositionPollingFallback();
       }
     });
 
+    on<SetTripStatus>((event, emit) {
+      emit(state.copyWith(statusTrip: event.status));
+    });
+
     on<GetTimeAndDistanceValues>((event, emit) async {
+      final request = state.clientRequestResponse;
+      if (request == null) return;
+      final target = _routeTarget(request);
       Resource response = await clientRequestsUseCases.getTimeAndDistance.run(
         event.driverLat,
         event.driverLng,
-        state.clientRequestResponse!.pickupPosition.x,
-        state.clientRequestResponse!.pickupPosition.y,
+        target.lat,
+        target.lng,
       );
       if (response is Success) {
         final data = response.data as TD.TimeAndDistanceValues;
@@ -191,6 +216,9 @@ class ClientMapTripBloc extends Bloc<ClientMapTripEvent, ClientMapTripState> {
     });
 
     on<SetDriverLatLng>((event, emit) {
+      final request = state.clientRequestResponse;
+      if (request == null) return;
+
       LatLng driverPosition = LatLng(event.lat, event.lng);
       print(
           'socket trip_new_driver_position received lat=${event.lat} lng=${event.lng}');
@@ -202,27 +230,18 @@ class ClientMapTripBloc extends Bloc<ClientMapTripEvent, ClientMapTripState> {
         _didFocusDriverInitial = true;
         add(ChangeMapCameraPosition(lat: event.lat, lng: event.lng));
       }
-      if (!state.isRouteDrawed) {
-        add(AddPolyline(
+
+      final target = _routeTarget(request);
+      add(AddPolyline(
+        driverLat: state.driverLatLng!.latitude,
+        driverLng: state.driverLatLng!.longitude,
+        destinationLat: target.lat,
+        destinationLng: target.lng,
+      ));
+      add(GetTimeAndDistanceValues(
           driverLat: state.driverLatLng!.latitude,
-          driverLng: state.driverLatLng!.longitude,
-          destinationLat: state.clientRequestResponse!.pickupPosition.x,
-          destinationLng: state.clientRequestResponse!.pickupPosition.y,
-        ));
-        add(GetTimeAndDistanceValues(
-            driverLat: state.driverLatLng!.latitude,
-            driverLng: state.driverLatLng!.longitude));
-        _startOrRefreshEtaTimer();
-      } else {
-        add(AddPolyline(
-          driverLat: state.driverLatLng!.latitude,
-          driverLng: state.driverLatLng!.longitude,
-          destinationLat: state.clientRequestResponse!.pickupPosition.x,
-          destinationLng: state.clientRequestResponse!.pickupPosition.y,
-        ));
-        // Aunque la ruta ya exista, seguimos refrescando ETA para ver avance.
-        _startOrRefreshEtaTimer();
-      }
+          driverLng: state.driverLatLng!.longitude));
+      _startOrRefreshEtaTimer();
     });
 
     on<UpdatePolyline>((event, emit) {
@@ -251,7 +270,9 @@ class ClientMapTripBloc extends Bloc<ClientMapTripEvent, ClientMapTripState> {
     });
 
     on<ListenTripNewDriverPosition>((event, emit) async {
-      if (blocSocketIO.state.socket == null) {
+      final socketState = blocSocketIO.state.socket;
+      if (socketState == null || socketState.disconnected) {
+        print('trip socket disconnected -> reconnecting');
         blocSocketIO.add(ConnectSocketIO());
         Future.delayed(const Duration(milliseconds: 600), () {
           add(ListenTripNewDriverPosition());
@@ -309,19 +330,32 @@ class ClientMapTripBloc extends Bloc<ClientMapTripEvent, ClientMapTripState> {
       socket.on(eventName, (data) {
         String statusTrip = data['status'] as String;
         if (statusTrip == StatusTrip.ARRIVED.name) {
-          timer?.cancel();
-          timer = null;
+          final request = state.clientRequestResponse;
+          if (request == null) return;
+
+          add(SetTripStatus(status: StatusTrip.ARRIVED));
+
+          final driverLat = state.driverLatLng?.latitude ??
+              request.pickupPosition.x;
+          final driverLng = state.driverLatLng?.longitude ??
+              request.pickupPosition.y;
+
           add(AddPolyline(
-              driverLat: state.driverLatLng!.latitude,
-              driverLng: state.driverLatLng!.longitude,
-              destinationLat:
-                  state.clientRequestResponse!.destinationPosition.x,
-              destinationLng:
-                  state.clientRequestResponse!.destinationPosition.y));
+            driverLat: driverLat,
+            driverLng: driverLng,
+            destinationLat: request.destinationPosition.x,
+            destinationLng: request.destinationPosition.y,
+          ));
           add(RemoveMarker(idMarker: 'pickup'));
           add(AddMarkerDestination(
-              lat: state.clientRequestResponse!.destinationPosition.x,
-              lng: state.clientRequestResponse!.destinationPosition.y));
+            lat: request.destinationPosition.x,
+            lng: request.destinationPosition.y,
+          ));
+          add(GetTimeAndDistanceValues(
+            driverLat: driverLat,
+            driverLng: driverLng,
+          ));
+          _startOrRefreshEtaTimer();
         } else if (statusTrip == StatusTrip.FINISHED.name) {
           timer?.cancel();
           timer = null;
@@ -414,12 +448,17 @@ class ClientMapTripBloc extends Bloc<ClientMapTripEvent, ClientMapTripState> {
         Timer.periodic(const Duration(seconds: 3), (_) async {
       final request = state.clientRequestResponse;
       final idDriver = request?.idDriverAssigned;
-      if (request == null || idDriver == null || idDriver <= 0) return;
+      if (request == null || idDriver == null || idDriver <= 0) {
+        return;
+      }
       final response =
           await driversPositionUseCases.getDriverPosition.run(idDriver);
       if (response is Success<DriverPosition>) {
         final pos = response.data;
+        print('driver position polling lat=${pos.lat} lng=${pos.lng}');
         add(SetDriverLatLng(lat: pos.lat, lng: pos.lng));
+      } else if (response is ErrorData) {
+        print('driver position polling error: ${response.message}');
       }
     });
   }

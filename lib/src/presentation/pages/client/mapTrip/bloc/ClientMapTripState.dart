@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:rabbit_flutter/src/domain/models/ClientRequestResponse.dart';
+import 'package:rabbit_flutter/src/domain/models/StatusTrip.dart';
 import 'package:rabbit_flutter/src/domain/models/TimeAndDistanceValues.dart';
 import 'package:rabbit_flutter/src/domain/utils/Resource.dart';
 
@@ -17,6 +18,7 @@ class ClientMapTripState extends Equatable {
   final ClientRequestResponse? clientRequestResponse;
   final bool isRouteDrawed;
   final LatLng? driverLatLng;
+  final StatusTrip? statusTrip;
 
   ClientMapTripState({
     this.responseGetClientRequest,
@@ -27,7 +29,8 @@ class ClientMapTripState extends Equatable {
     this.timeAndDistanceValues,
     this.clientRequestResponse,
     this.isRouteDrawed = false,
-    this.driverLatLng
+    this.driverLatLng,
+    this.statusTrip,
   });
 
   ClientMapTripState copyWith({
@@ -39,7 +42,8 @@ class ClientMapTripState extends Equatable {
     ClientRequestResponse? clientRequestResponse,
     bool? isRouteDrawed,
     TimeAndDistanceValues? timeAndDistanceValues,
-    LatLng? driverLatLng
+    LatLng? driverLatLng,
+    StatusTrip? statusTrip,
   }) {
     return ClientMapTripState(
       responseGetClientRequest: responseGetClientRequest ?? this.responseGetClientRequest,
@@ -50,12 +54,23 @@ class ClientMapTripState extends Equatable {
       timeAndDistanceValues: timeAndDistanceValues ?? this.timeAndDistanceValues,
       clientRequestResponse: clientRequestResponse ?? this.clientRequestResponse,
       isRouteDrawed: isRouteDrawed ?? this.isRouteDrawed,
-      driverLatLng: driverLatLng ?? this.driverLatLng
+      driverLatLng: driverLatLng ?? this.driverLatLng,
+      statusTrip: statusTrip ?? this.statusTrip,
     );
   }
 
   @override
-  // TODO: implement props
-  List<Object?> get props => [responseGetClientRequest, timeAndDistanceValues, controller, markers, polylines, cameraPosition, clientRequestResponse, isRouteDrawed, driverLatLng];
+  List<Object?> get props => [
+        responseGetClientRequest,
+        timeAndDistanceValues,
+        controller,
+        markers,
+        polylines,
+        cameraPosition,
+        clientRequestResponse,
+        isRouteDrawed,
+        driverLatLng,
+        statusTrip,
+      ];
 
 }

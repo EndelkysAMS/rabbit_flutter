@@ -3,10 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:rabbit_flutter/blocSocketIO/BlocSocketIO.dart';
 import 'package:rabbit_flutter/blocSocketIO/BlocSocketIOEvent.dart';
-import 'package:rabbit_flutter/src/domain/models/ClientRequestResponse.dart';
 import 'package:rabbit_flutter/src/presentation/pages/driver/clientRequests/bloc/DriverClientRequestsBloc.dart';
 import 'package:rabbit_flutter/src/presentation/pages/driver/clientRequests/bloc/DriverClientRequestsEvent.dart';
-import 'package:rabbit_flutter/src/presentation/pages/driver/clientRequests/bloc/DriverClientRequestsState.dart';
 import 'package:rabbit_flutter/src/presentation/pages/driver/mapLocation/bloc/DriverMapLocationEvent.dart';
 import 'package:rabbit_flutter/src/presentation/pages/driver/mapLocation/bloc/DriverMapLocationBloc.dart';
 import 'package:rabbit_flutter/src/presentation/pages/driver/mapLocation/bloc/DriverMapLocationState.dart';
@@ -20,22 +18,6 @@ class DriverMapLocationPage extends StatefulWidget {
 }
 
 class _DriverMapLocationPageState extends State<DriverMapLocationPage> {
-  Set<Marker> _buildTripRequestMarkers(List<ClientRequestResponse> requests) {
-    return requests.map((request) {
-      final lat = request.pickupPosition.x;
-      final lng = request.pickupPosition.y;
-      return Marker(
-        markerId: MarkerId('request_${request.id}'),
-        position: LatLng(lat, lng),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
-        infoWindow: InfoWindow(
-          title: request.pickupDescription,
-          snippet: 'Destino: ${request.destinationDescription}',
-        ),
-      );
-    }).toSet();
-  }
-
   @override
   void initState() {
     super.initState();
@@ -52,14 +34,10 @@ class _DriverMapLocationPageState extends State<DriverMapLocationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocConsumer<DriverClientRequestsBloc, DriverClientRequestsState>(
-        listener: (context, requestsState) {},
-        builder: (context, requestsState) {
-          return BlocBuilder<DriverMapLocationBloc, DriverMapLocationState>(
+      body: BlocBuilder<DriverMapLocationBloc, DriverMapLocationState>(
             builder: (context, state) {
               final mapMarkers = <Marker>{
                 ...state.markers.values,
-                ..._buildTripRequestMarkers(requestsState.nearbyRequests),
               };
               return Stack(
                 alignment: Alignment.topCenter,
@@ -133,8 +111,6 @@ class _DriverMapLocationPageState extends State<DriverMapLocationPage> {
                 ],
               );
             },
-          );
-        },
       ),
     );
   }

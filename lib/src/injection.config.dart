@@ -13,6 +13,8 @@ import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:rabbit_flutter/src/data/dataSource/local/SharefPref.dart'
     as _i858;
+import 'package:rabbit_flutter/src/data/dataSource/remote/services/AdminLineaService.dart'
+    as _i183;
 import 'package:rabbit_flutter/src/data/dataSource/remote/services/AuthService.dart'
     as _i565;
 import 'package:rabbit_flutter/src/data/dataSource/remote/services/ClientRequestsService.dart'
@@ -28,6 +30,8 @@ import 'package:rabbit_flutter/src/data/dataSource/remote/services/UsersService.
 import 'package:rabbit_flutter/src/data/repository/DriverBikeInfoRepository.dart'
     as _i920;
 import 'package:rabbit_flutter/src/di/AppModule.dart' as _i581;
+import 'package:rabbit_flutter/src/domain/repository/AdminLineaRepository.dart'
+    as _i474;
 import 'package:rabbit_flutter/src/domain/repository/AuthRepository.dart'
     as _i972;
 import 'package:rabbit_flutter/src/domain/repository/ClientRequestsRepository.dart'
@@ -42,6 +46,8 @@ import 'package:rabbit_flutter/src/domain/repository/SocketRepository.dart'
     as _i307;
 import 'package:rabbit_flutter/src/domain/repository/UsersRepository.dart'
     as _i298;
+import 'package:rabbit_flutter/src/domain/useCases/admin-linea/AdminLineaUseCases.dart'
+    as _i413;
 import 'package:rabbit_flutter/src/domain/useCases/auth/AuthUseCases.dart'
     as _i811;
 import 'package:rabbit_flutter/src/domain/useCases/client-requests/ClientRequestsUseCases.dart'
@@ -76,6 +82,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i414.Socket>(() => appModule.socket);
     gh.factoryAsync<String>(() => appModule.token);
     gh.factory<_i565.AuthService>(() => appModule.authService);
+    gh.factory<_i183.AdminLineaService>(() => appModule.adminLineaService);
     gh.factory<_i218.UsersService>(() => appModule.usersService);
     gh.factory<_i156.DriversPositionService>(
         () => appModule.driversPositionService);
@@ -85,6 +92,8 @@ extension GetItInjectableX on _i174.GetIt {
         () => appModule.driverTripRequestsService);
     gh.factory<_i691.DriverBikeInfoService>(
         () => appModule.driverBikeInfoService);
+    gh.factory<_i474.AdminLineaRepository>(
+        () => appModule.adminLineaRepository);
     gh.factory<_i972.AuthRepository>(() => appModule.authRepository);
     gh.factory<_i298.UsersRepository>(() => appModule.usersRepository);
     gh.factory<_i307.SocketRepository>(() => appModule.socketRepository);
@@ -98,6 +107,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i920.DriverBikeInfoRepository>(
         () => appModule.driverBikeInfoRepository);
     gh.factory<_i811.AuthUseCases>(() => appModule.authUseCases);
+    gh.factory<_i413.AdminLineaUseCases>(() => appModule.adminLineaUseCases);
     gh.factory<_i61.UsersUseCases>(() => appModule.usersUseCases);
     gh.factory<_i512.GeolocatorUseCases>(() => appModule.geolocatorUseCases);
     gh.factory<_i458.SocketUseCases>(() => appModule.socketUseCases);

@@ -18,44 +18,110 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _isNavigating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isNavigating = false;
+    _emailController.clear();
+    _passwordController.clear();
+    // Reset the bloc to a clean state every time we land on the login screen,
+    // so a previous Success/Error never leaks into a new login session.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<LoginBloc>().add(ClearLoginForm());
+    });
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _handleSuccess(BuildContext context, AuthResponse authResponse) {
+    debugPrint('[LoginPage] navigating with user=${authResponse.user.id} '
+        'roles=${authResponse.user.roles?.map((r) => r.route).toList()}');
+
+    context.read<LoginBloc>().add(SaveUserSession(authResponse: authResponse));
+    if (authResponse.user.id != null) {
+      context
+          .read<LoginBloc>()
+          .add(UpdateNotificationToken(id: authResponse.user.id!));
+    }
+    context.read<BlocSocketIO>().add(ConnectSocketIO());
+    context.read<BlocSocketIO>().add(ListenDriverAssignedSocketIO());
+
+    final roles = authResponse.user.roles ?? [];
+    final hasAdminLineaRole = roles.any((role) {
+      final roleId = role.id.toLowerCase();
+      final roleName = role.name.toLowerCase();
+      final roleRoute = role.route.toLowerCase();
+      return roleId == '3' ||
+          roleId.contains('admin') ||
+          roleName.contains('admin') ||
+          roleName.contains('linea') ||
+          roleRoute == 'admin/home' ||
+          roleRoute.contains('admin');
+    });
+
+    String target;
+    if (hasAdminLineaRole) {
+      target = 'admin/home';
+    } else if (roles.length == 1) {
+      final singleRoute = roles.first.route;
+      target = singleRoute.isNotEmpty ? singleRoute : 'client/home';
+    } else if (roles.length > 1) {
+      target = 'roles';
+    } else {
+      target = 'client/home';
+    }
+
+    Navigator.pushNamedAndRemoveUntil(context, target, (route) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocListener<LoginBloc, LoginState>(
+        listenWhen: (previous, current) => previous.response != current.response,
         listener: (context, state) {
           final response = state.response;
-          if(response is ErrorData) {
-            Fluttertoast.showToast(msg: '${response.message}', toastLength: Toast.LENGTH_SHORT);
-            print('Error Data: ${response.message}');
+          debugPrint(
+              '[LoginPage] listener response=${response.runtimeType} navigating=$_isNavigating');
+          if (response is ErrorData) {
+            _isNavigating = false;
+            Fluttertoast.showToast(
+                msg: response.message, toastLength: Toast.LENGTH_SHORT);
+            return;
           }
-          else if (response is Success) {
-            print('Success Data: ${response.data}');
-            final authResponse = response.data as AuthResponse;
-            context.read<LoginBloc>().add(SaveUserSession(authResponse: authResponse));
-            if (authResponse.user.id != null) {
-              context
-                  .read<LoginBloc>()
-                  .add(UpdateNotificationToken(id: authResponse.user.id!));
-            }
-            context.read<BlocSocketIO>().add(ConnectSocketIO());
-             context.read<BlocSocketIO>().add(ListenDriverAssignedSocketIO());
-            if(authResponse.user.roles!.length > 1) {
-              Navigator.pushNamedAndRemoveUntil(context, 'roles',  (route) => false);
-            }
-            else {
-              Navigator.pushNamedAndRemoveUntil(context, 'client/home',  (route) => false);
-            }
+          if (response is Success && !_isNavigating) {
+            _isNavigating = true;
+            _handleSuccess(context, response.data as AuthResponse);
           }
         },
         child: BlocBuilder<LoginBloc, LoginState>(
+          buildWhen: (previous, current) =>
+              previous.response != current.response ||
+              previous.showPassword != current.showPassword,
           builder: (context, state) {
             final response = state.response;
-            if(response is Loading) {
-              return Center(
+            if (response is Loading) {
+              return const Center(
                 child: CircularProgressIndicator(),
               );
             }
-            return LoginContent(state);
+            return LoginContent(
+              state,
+              emailController: _emailController,
+              passwordController: _passwordController,
+              formKey: _formKey,
+            );
           },
         ),
       ),

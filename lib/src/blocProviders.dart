@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rabbit_flutter/blocSocketIO/BlocSocketIO.dart';
 import 'package:rabbit_flutter/src/domain/useCases/auth/AuthUseCases.dart';
+import 'package:rabbit_flutter/src/domain/useCases/admin-linea/AdminLineaUseCases.dart';
 import 'package:rabbit_flutter/src/domain/useCases/client-requests/ClientRequestsUseCases.dart';
 import 'package:rabbit_flutter/src/domain/useCases/driver-bike-info/DriverBikeInfoUseCases.dart';
 import 'package:rabbit_flutter/src/domain/useCases/driver-trip-request/DriverTripRequestUseCases.dart';
@@ -10,6 +11,7 @@ import 'package:rabbit_flutter/src/domain/useCases/socket/SocketUseCases.dart';
 import 'package:rabbit_flutter/src/domain/useCases/users/UsersUseCases.dart';
 import 'package:rabbit_flutter/src/injection.dart';
 import 'package:rabbit_flutter/src/presentation/pages/auth/login/bloc/LoginBloc.dart';
+import 'package:rabbit_flutter/src/presentation/pages/admin/dashboard/bloc/admin_dashboard_bloc.dart';
 import 'package:rabbit_flutter/src/presentation/pages/auth/login/bloc/LoginEvent.dart';
 import 'package:rabbit_flutter/src/presentation/pages/auth/register/bloc/RegisterBloc.dart';
 import 'package:rabbit_flutter/src/presentation/pages/auth/register/bloc/RegisterEvent.dart';
@@ -51,6 +53,9 @@ List<BlocProvider> blocProviders = [
   BlocProvider<RolesBloc>(
       create: (context) =>
           RolesBloc(locator<AuthUseCases>())..add(GetRolesList())),
+  BlocProvider<AdminDashboardBloc>(
+      create: (context) => AdminDashboardBloc(
+          locator<AdminLineaUseCases>(), locator<AuthUseCases>())),
   BlocProvider<ProfileInfoBloc>(
       create: (context) =>
           ProfileInfoBloc(locator<AuthUseCases>())..add(GetUserInfo())),

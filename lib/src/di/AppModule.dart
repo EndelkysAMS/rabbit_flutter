@@ -2,11 +2,13 @@ import 'package:injectable/injectable.dart';
 import 'package:rabbit_flutter/src/data/api/ApiConfig.dart';
 import 'package:rabbit_flutter/src/data/dataSource/local/SharefPref.dart';
 import 'package:rabbit_flutter/src/data/dataSource/remote/services/AuthService.dart';
+import 'package:rabbit_flutter/src/data/dataSource/remote/services/AdminLineaService.dart';
 import 'package:rabbit_flutter/src/data/dataSource/remote/services/ClientRequestsService.dart';
 import 'package:rabbit_flutter/src/data/dataSource/remote/services/DriverBikeInfoService.dart';
 import 'package:rabbit_flutter/src/data/dataSource/remote/services/DriverTripRequestsService.dart';
 import 'package:rabbit_flutter/src/data/dataSource/remote/services/DriversPositionService.dart';
 import 'package:rabbit_flutter/src/data/dataSource/remote/services/UsersService.dart';
+import 'package:rabbit_flutter/src/data/repository/AdminLineaRepositoryImpl.dart';
 import 'package:rabbit_flutter/src/data/repository/AuthRepositorylmpl.dart';
 import 'package:rabbit_flutter/src/data/repository/ClientRequestsRepositoryImpl.dart';
 import 'package:rabbit_flutter/src/data/repository/DriverBikeInfoRepository.dart';
@@ -17,6 +19,7 @@ import 'package:rabbit_flutter/src/data/repository/GeolocatorRepositoryImpl.dart
 import 'package:rabbit_flutter/src/data/repository/SocketRepositoryImpl.dart';
 import 'package:rabbit_flutter/src/data/repository/UsersRepositoryImpl.dart';
 import 'package:rabbit_flutter/src/domain/models/AuthResponse.dart';
+import 'package:rabbit_flutter/src/domain/repository/AdminLineaRepository.dart';
 import 'package:rabbit_flutter/src/domain/repository/AuthRepository.dart';
 import 'package:rabbit_flutter/src/domain/repository/ClientRequestsRepository.dart';
 import 'package:rabbit_flutter/src/domain/repository/DriverTripRequestsRepository.dart';
@@ -24,6 +27,12 @@ import 'package:rabbit_flutter/src/domain/repository/DriversPositionRepository.d
 import 'package:rabbit_flutter/src/domain/repository/GeolocatorRepository.dart';
 import 'package:rabbit_flutter/src/domain/repository/SocketRepository.dart';
 import 'package:rabbit_flutter/src/domain/repository/UsersRepository.dart';
+import 'package:rabbit_flutter/src/domain/useCases/admin-linea/AdminLineaUseCases.dart';
+import 'package:rabbit_flutter/src/domain/useCases/admin-linea/CreateAdminLineaDriverUseCase.dart';
+import 'package:rabbit_flutter/src/domain/useCases/admin-linea/DeactivateAdminLineaDriverUseCase.dart';
+import 'package:rabbit_flutter/src/domain/useCases/admin-linea/DeleteAdminLineaDriverUseCase.dart';
+import 'package:rabbit_flutter/src/domain/useCases/admin-linea/GetAdminLineaDriversUseCase.dart';
+import 'package:rabbit_flutter/src/domain/useCases/admin-linea/UpdateAdminLineaProfileUseCase.dart';
 import 'package:rabbit_flutter/src/domain/useCases/auth/AuthUseCases.dart';
 import 'package:rabbit_flutter/src/domain/useCases/auth/GetUserSessionUseCase.dart';
 import 'package:rabbit_flutter/src/domain/useCases/auth/LoginUseCase.dart';
@@ -94,6 +103,9 @@ abstract class AppModule {
   AuthService get authService => AuthService();
 
   @injectable
+  AdminLineaService get adminLineaService => AdminLineaService(token);
+
+  @injectable
   UsersService get usersService => UsersService(token);
 
   @injectable
@@ -110,6 +122,10 @@ abstract class AppModule {
 
   @injectable
   DriverBikeInfoService get driverBikeInfoService => DriverBikeInfoService(token);
+
+  @injectable
+  AdminLineaRepository get adminLineaRepository =>
+      AdminLineaRepositoryImpl(adminLineaService);
 
   @injectable
   AuthRepository get authRepository =>
@@ -147,6 +163,14 @@ abstract class AppModule {
       saveUserSession: SaveUserSessionUseCase(authRepository),
       getUserSession: GetUserSessionUseCase(authRepository),
       logout: LogoutUseCase(authRepository));
+
+  @injectable
+  AdminLineaUseCases get adminLineaUseCases => AdminLineaUseCases(
+      getDrivers: GetAdminLineaDriversUseCase(adminLineaRepository),
+      createDriver: CreateAdminLineaDriverUseCase(adminLineaRepository),
+      deactivateDriver: DeactivateAdminLineaDriverUseCase(adminLineaRepository),
+      deleteDriver: DeleteAdminLineaDriverUseCase(adminLineaRepository),
+      updateProfile: UpdateAdminLineaProfileUseCase(adminLineaRepository));
 
   @injectable
   UsersUseCases get usersUseCases => UsersUseCases(

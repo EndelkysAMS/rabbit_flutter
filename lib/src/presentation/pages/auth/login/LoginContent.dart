@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:rabbit_flutter/src/presentation/pages/auth/login/bloc/LoginBloc.dart';
 import 'package:rabbit_flutter/src/presentation/pages/auth/login/bloc/LoginEvent.dart';
 import 'package:rabbit_flutter/src/presentation/pages/auth/login/bloc/LoginState.dart';
@@ -8,15 +9,23 @@ import 'package:rabbit_flutter/src/presentation/pages/widgets/DefaultTextField.d
 import 'package:rabbit_flutter/src/presentation/utils/BlocFormItem.dart';
 
 class LoginContent extends StatelessWidget {
-  
   final LoginState state;
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+  final GlobalKey<FormState> formKey;
 
-  const LoginContent(this.state);
+  const LoginContent(
+    this.state, {
+    required this.emailController,
+    required this.passwordController,
+    required this.formKey,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Form(
-      key: state.formKey,
+      key: formKey,
       child: Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
@@ -32,36 +41,76 @@ class LoginContent extends StatelessWidget {
                     height: 250,
                   ),
                   DefaultTextField(
-                    onChanged: ( String text) {
-                      context.read<LoginBloc>().add(EmailChanged(email: BlocFormItem(value: text)));
+                    controller: emailController,
+                    onChanged: (String text) {
+                      context
+                          .read<LoginBloc>()
+                          .add(EmailChanged(email: BlocFormItem(value: text)));
                     },
                     validator: (value) {
-                     return state.email.error;
+                      return state.email.error;
                     },
                     hintText: "Email",
                     icon: Icons.email_outlined,
                   ),
                   DefaultTextField(
-                    onChanged: ( String text) {
-                      context.read<LoginBloc>().add(PasswordChanged(password: BlocFormItem(value: text)));
+                    controller: passwordController,
+                    onChanged: (String text) {
+                      context.read<LoginBloc>().add(
+                          PasswordChanged(password: BlocFormItem(value: text)));
                     },
                     validator: (value) {
-                     return state.password.error;
+                      return state.password.error;
                     },
                     hintText: "Contraseña",
                     icon: Icons.lock_outline,
-                    obscureText: true,
+                    obscureText: !state.showPassword,
+                    suffixIcon: state.showPassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    onSuffixTap: () {
+                      context.read<LoginBloc>().add(TogglePasswordVisibility());
+                    },
                   ),
                   const SizedBox(height: 16),
                   DefaultButton(
                     text: "Login",
                     onPressed: () {
-                      if(state.formKey!.currentState!.validate()) {
-                      context.read<LoginBloc>().add(FormSubmit());
+                      final email = emailController.text.trim();
+                      final password = passwordController.text;
+                      if (email.isEmpty) {
+                        Fluttertoast.showToast(msg: 'Ingresa el email');
+                        context.read<LoginBloc>().add(
+                              EmailChanged(
+                                email: BlocFormItem(value: email),
+                              ),
+                            );
+                        return;
                       }
-                      else {
-                        print('El formulario no es valido');
+                      if (password.isEmpty) {
+                        Fluttertoast.showToast(msg: 'Ingresa la contraseña');
+                        context.read<LoginBloc>().add(
+                              PasswordChanged(
+                                password: BlocFormItem(value: password),
+                              ),
+                            );
+                        return;
                       }
+                      if (password.length < 6) {
+                        Fluttertoast.showToast(msg: 'Mínimo 6 caracteres');
+                        context.read<LoginBloc>().add(
+                              PasswordChanged(
+                                password: BlocFormItem(value: password),
+                              ),
+                            );
+                        return;
+                      }
+                      context.read<LoginBloc>().add(
+                            FormSubmit(
+                              email: email,
+                              password: password,
+                            ),
+                          );
                     },
                   ),
                   const SizedBox(height: 16),

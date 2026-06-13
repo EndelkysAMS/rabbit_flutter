@@ -32,8 +32,10 @@ class DriverMapTripBloc extends Bloc<DriverMapTripEvent, DriverMapTripState> {
     });
 
     on<AddMarkerPickup>((event, emit) async {
-      BitmapDescriptor pickUpDescriptor = await geolocatorUseCases.createMarker
-          .run('assets/img/person_location.png');
+      final pickUpDescriptor = await BitmapDescriptor.fromAssetImage(
+        const ImageConfiguration(size: Size(48, 48)),
+        'assets/img/person_location.png',
+      );
       Marker markerPickUp = geolocatorUseCases.getMarker.run(
           'pickup',
           event.lat,
@@ -143,8 +145,10 @@ class DriverMapTripBloc extends Bloc<DriverMapTripEvent, DriverMapTripState> {
     });
 
     on<AddMyPositionMarker>((event, emit) async {
-      BitmapDescriptor descriptor =
-          await geolocatorUseCases.createMarker.run('assets/img/moto_pin.png');
+      final descriptor = await BitmapDescriptor.fromAssetImage(
+        const ImageConfiguration(size: Size(36, 36)),
+        'assets/img/moto_pin.png',
+      );
       Marker marker = geolocatorUseCases.getMarker.run(
           'my_location', event.lat, event.lng, 'Mi posicion', '', descriptor);
       emit(state.copyWith(
@@ -208,18 +212,20 @@ class DriverMapTripBloc extends Bloc<DriverMapTripEvent, DriverMapTripState> {
       Resource response = await clientRequestsUseCases.updateStatusClientRequest
           .run(state.clientRequestResponse!.id, StatusTrip.ARRIVED);
       if (response is Success) {
-        add(AddPolyline(
-          idPolyline: "destination_polyline",
-          originLat: state.position!.latitude,
-          originLng: state.position!.longitude,
-          destinationLat: state.clientRequestResponse!.destinationPosition.x,
-          destinationLng: state.clientRequestResponse!.destinationPosition.y,
-        ));
+        emit(state.copyWith(statusTrip: StatusTrip.ARRIVED));
+        if (state.position != null) {
+          add(AddPolyline(
+            idPolyline: "destination_polyline",
+            originLat: state.position!.latitude,
+            originLng: state.position!.longitude,
+            destinationLat: state.clientRequestResponse!.destinationPosition.x,
+            destinationLng: state.clientRequestResponse!.destinationPosition.y,
+          ));
+        }
         add(AddMarkerDestination(
             lat: state.clientRequestResponse!.destinationPosition.x,
             lng: state.clientRequestResponse!.destinationPosition.y));
         add(RemoveMarker(idMarker: 'pickup'));
-        emit(state.copyWith(statusTrip: StatusTrip.ARRIVED));
         add(EmitUpdateStatusSocketIO());
       }
     });
