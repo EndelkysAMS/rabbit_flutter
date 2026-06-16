@@ -6,10 +6,15 @@ class RolesItem extends StatelessWidget {
 
   const RolesItem(this.role, {super.key});
 
+  bool get _isRabbitSuper =>
+      role.id == 'RABBIT_SUPER' ||
+      role.name.toUpperCase().contains('RABBIT SUPER');
+
   bool get _isAdminLinea =>
-      role.id == '3' ||
+      !_isRabbitSuper &&
+      (role.id == '3' ||
       role.route == 'admin/home' ||
-      role.name.toUpperCase().contains('ADMIN');
+      role.name.toUpperCase().contains('ADMIN'));
 
   bool get _isDriverRole =>
       role.route == 'driver/home' ||
@@ -22,6 +27,7 @@ class RolesItem extends StatelessWidget {
       role.name.toUpperCase().contains('CLIENT');
 
   String _roleAsset() {
+    if (_isRabbitSuper) return 'assets/img/role_admin.png';
     if (_isAdminLinea) return 'assets/img/role_admin.png';
     if (_isDriverRole) return 'assets/img/role_driver.png';
     if (_isClientRole) return 'assets/img/role_client.png';
@@ -32,7 +38,11 @@ class RolesItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        final targetRoute = _isAdminLinea ? 'admin/home' : role.route;
+        final targetRoute = _isRabbitSuper
+            ? 'super/home'
+            : _isAdminLinea
+                ? 'admin/home'
+                : role.route;
         Navigator.pushNamedAndRemoveUntil(context, targetRoute, (route) => false);
       },
       child: Column(

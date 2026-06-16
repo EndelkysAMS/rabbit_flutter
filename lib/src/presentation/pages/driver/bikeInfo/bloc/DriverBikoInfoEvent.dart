@@ -20,3 +20,5 @@ class ColorChanged extends DriverBikeInfoEvent {
 }
 
 class FormSubmit extends DriverBikeInfoEvent {}
+
+class ClearDriverBikeInfoResponse extends DriverBikeInfoEvent {}

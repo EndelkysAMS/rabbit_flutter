@@ -6,6 +6,13 @@ class ClientMapSeekerInitEvent extends ClientMapSeekerEvent {}
 
 class FindPosition extends ClientMapSeekerEvent {}
 
+class LoadNearbyDriversEvent extends ClientMapSeekerEvent {
+  final double lat;
+  final double lng;
+
+  LoadNearbyDriversEvent({required this.lat, required this.lng});
+}
+
 class ChangeMapCameraPosition extends ClientMapSeekerEvent {
   final double lat;
   final double lng;
@@ -46,19 +53,17 @@ class ListenDriversPositionSocketIO extends ClientMapSeekerEvent {}
 class ListenDriversDisconnectedSocketIO extends ClientMapSeekerEvent {}
 
 class RemoveDriverPositionMarker extends ClientMapSeekerEvent {
-  final String idSocket;
+  final int driverId;
 
-  RemoveDriverPositionMarker({required this.idSocket});
+  RemoveDriverPositionMarker({required this.driverId});
 }
 
 class AddDriverPositionMarker extends ClientMapSeekerEvent {
-  final String idSocket;
   final int id;
   final double lat;
   final double lng;
 
   AddDriverPositionMarker({
-    required this.idSocket,
     required this.id,
     required this.lat,
     required this.lng,

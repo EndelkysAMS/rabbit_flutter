@@ -17,25 +17,30 @@ class DriverRatingTripContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(height: 50),
-        _iconCheck(),
-        SizedBox(height: 15),
-        _textFinished(),
-        SizedBox(height: 30),
-        _listTilePickup(),
-        _listTileDestination(),
-        SizedBox(height: 70),
-        _textFare(),
-        _textFareValue(),
-        SizedBox(height: 20),
-        _textRateYourClient(),
-        _ratingBar(context),
-        Spacer(),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 36),
-          child: DefaultButton(
+    final minHeight = MediaQuery.of(context).size.height;
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: minHeight),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+            child: Column(
+              children: [
+            _iconCheck(),
+            const SizedBox(height: 15),
+            _textFinished(),
+            const SizedBox(height: 24),
+            _listTilePickup(),
+            _listTileDestination(),
+            const SizedBox(height: 32),
+            _textFare(),
+            _textFareValue(),
+            const SizedBox(height: 20),
+            _textRateYourClient(),
+            _ratingBar(context),
+            const SizedBox(height: 32),
+            DefaultButton(
               text: 'Calificar Cliente',
               width: 240,
               backgroundColor: Colors.white,
@@ -43,9 +48,13 @@ class DriverRatingTripContent extends StatelessWidget {
               onPressed: () {
                 context.read<DriverRatingTripBloc>().add(
                     UpdateRating(idClientRequest: clientRequestResponse!.id));
-              }),
-        )
-      ],
+              },
+            ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -137,7 +146,7 @@ class DriverRatingTripContent extends StatelessWidget {
     return Icon(
       Icons.check_circle,
       color: Colors.white,
-      size: 100,
+      size: 72,
     );
   }
 }

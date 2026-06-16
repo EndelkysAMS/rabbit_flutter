@@ -101,4 +101,50 @@ class DriversPositionService {
       return ErrorData(e.toString());
     }
   }
+
+  Future<Resource<List<DriverPosition>>> getNearbyDrivers(
+    double clientLat,
+    double clientLng,
+  ) async {
+    try {
+      final url = Uri.http(
+        ApiConfig.API_RABBIT,
+        '/drivers-position/nearby/$clientLat/$clientLng',
+      );
+      final headers = {
+        'Content-Type': 'application/json',
+        'Authorization': await token,
+      };
+      final response = await http.get(url, headers: headers);
+      final data = _safeDecode(response);
+      if (response.statusCode == 200) {
+        if (data is! List) return Success(const <DriverPosition>[]);
+        final drivers = data.whereType<Map>().map((item) {
+          final map = Map<String, dynamic>.from(item);
+          final position = map['position'];
+          double lat = 0;
+          double lng = 0;
+          if (position is Map) {
+            lat = (position['x'] as num?)?.toDouble() ?? 0;
+            lng = (position['y'] as num?)?.toDouble() ?? 0;
+          }
+          return DriverPosition(
+            idDriver: (map['id_driver'] as num).toInt(),
+            lat: lat,
+            lng: lng,
+          );
+        }).where((d) => _isValidCoordinate(d.lat, d.lng)).toList();
+        return Success(drivers);
+      }
+      return ErrorData(_errorMessage(data));
+    } catch (e) {
+      return ErrorData(e.toString());
+    }
+  }
+
+  bool _isValidCoordinate(double lat, double lng) {
+    if (lat == 0 && lng == 0) return false;
+    if (lat.abs() > 90 || lng.abs() > 180) return false;
+    return true;
+  }
 }

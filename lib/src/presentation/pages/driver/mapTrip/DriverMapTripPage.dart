@@ -71,7 +71,11 @@ class _DriverMapTripPageState extends State<DriverMapTripPage> {
             final responseClientRequest = state.responseGetClientRequest;
             if (responseClientRequest is Success) {
               final data = responseClientRequest.data as ClientRequestResponse;
-              return DriverMapTripContent(state, data, null);
+              return DriverMapTripContent(
+                state,
+                data,
+                state.timeAndDistanceValues,
+              );
             }
             if (responseClientRequest is ErrorData) {
               return const Center(

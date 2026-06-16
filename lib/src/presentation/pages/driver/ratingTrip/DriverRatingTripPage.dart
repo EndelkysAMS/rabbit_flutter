@@ -22,6 +22,7 @@ class _DriverRatingTripPageState extends State<DriverRatingTripPage> {
     clientRequestResponse =
         ModalRoute.of(context)?.settings.arguments as ClientRequestResponse;
     return Scaffold(
+      backgroundColor: const Color(0xFFFF8000),
       body: BlocListener<DriverRatingTripBloc, DriverRatingTripState>(
         listener: (context, state) {
           final response = state.response;
@@ -34,12 +35,12 @@ class _DriverRatingTripPageState extends State<DriverRatingTripPage> {
         },
         child: BlocBuilder<DriverRatingTripBloc, DriverRatingTripState>(
           builder: (context, state) {
-            return Container(
-               decoration: const BoxDecoration(
-              color: Color(0xFFFF8000),
-              borderRadius: BorderRadius.all(Radius.circular(50)),
-            ),
-                child: DriverRatingTripContent(state, clientRequestResponse));
+            return SizedBox.expand(
+              child: ColoredBox(
+                color: const Color(0xFFFF8000),
+                child: DriverRatingTripContent(state, clientRequestResponse),
+              ),
+            );
           },
         ),
       ),

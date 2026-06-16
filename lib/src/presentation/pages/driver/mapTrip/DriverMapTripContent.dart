@@ -15,25 +15,32 @@ class DriverMapTripContent extends StatelessWidget {
   final TimeAndDistanceValues? timeAndDistanceValues;
 
   const DriverMapTripContent(
-      this.state, this.clientRequest, this.timeAndDistanceValues, {super.key});
+      this.state, this.clientRequest, this.timeAndDistanceValues,
+      {super.key});
 
   @override
   Widget build(BuildContext context) {
+    final maxPanelHeight = MediaQuery.of(context).size.height * 0.46;
+
     return Stack(
       children: [
-        _googleMaps(context),
+        Positioned.fill(child: _googleMaps(context)),
         Align(
           alignment: Alignment.bottomCenter,
-          child: _cardBookingInfo(context),
+          child: SafeArea(
+            top: false,
+            child: _cardBookingInfo(context, maxPanelHeight),
+          ),
         ),
       ],
     );
   }
 
-  Widget _cardBookingInfo(BuildContext context) {
+  Widget _cardBookingInfo(BuildContext context, double maxPanelHeight) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.45,
-      padding: const EdgeInsets.only(left: 20, right: 20),
+      constraints: BoxConstraints(maxHeight: maxPanelHeight),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
@@ -41,148 +48,215 @@ class DriverMapTripContent extends StatelessWidget {
           topRight: Radius.circular(30),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 15),
-          const Text(
-            'Tu Cliente',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              fontStyle: FontStyle.italic,
-              color: Color(0xFFFF8000),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(top: 10, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
             ),
-          ),
-          ListTile(
-            title: Text(
-              '${clientRequest?.client?.name} ${clientRequest?.client?.lastname}',
-              style: const TextStyle(fontSize: 15),
+            const Text(
+              'Tu Cliente',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFFF8000),
+              ),
             ),
-            subtitle: Text(
-              'Tel: ${clientRequest?.client?.phone}',
-              style: const TextStyle(fontSize: 13),
-            ),
-            trailing: DefaultImageUrl(
-              url: clientRequest?.client?.image,
-              width: 60,
-            ),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'Datos del Viaje',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              fontStyle: FontStyle.italic,
-              color: Color(0xFFFF8000),
-            ),
-          ),
-          ListTile(
-            title: const Text(
-              'Ubicaciones',
-              style: TextStyle(fontSize: 15),
-            ),
-            subtitle: Column(
+            const SizedBox(height: 6),
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Desde: ${clientRequest?.pickupDescription}',
-                  style: const TextStyle(fontSize: 13),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${clientRequest?.client.name ?? ''} ${clientRequest?.client.lastname ?? ''}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        'Tel: ${clientRequest?.client.phone ?? ''}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.black54,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _etaText(),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFFFF8000),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                Text(
-                  'Hasta: ${clientRequest?.destinationDescription}',
-                  style: const TextStyle(fontSize: 13),
+                DefaultImageUrl(
+                  url: clientRequest?.client.image,
+                  width: 52,
                 ),
               ],
             ),
-            leading: const Icon(
-              Icons.location_on,
-              color: Color(0xFFFF8000),
-            ),
-          ),
-          ListTile(
-            title: const Text(
-              'Valor del viaje',
-              style: TextStyle(fontSize: 15),
-            ),
-            subtitle: Text(
-              '${clientRequest?.fareAssigned}',
-              style: const TextStyle(
-                fontSize: 17,
-                color: Color(0xFFFF8000),
+            const SizedBox(height: 10),
+            const Text(
+              'Datos del Viaje',
+              style: TextStyle(
+                fontSize: 15,
                 fontWeight: FontWeight.bold,
+                color: Color(0xFFFF8000),
               ),
             ),
-            leading: const Icon(
-              Icons.money,
-              color: Color(0xFFFF8000),
+            const SizedBox(height: 4),
+            _infoRow(
+              icon: Icons.location_on,
+              title: 'Ubicaciones',
+              subtitle:
+                  'Desde: ${clientRequest?.pickupDescription ?? ''}\nHasta: ${clientRequest?.destinationDescription ?? ''}',
+            ),
+            _infoRow(
+              icon: Icons.monetization_on_outlined,
+              title: 'Valor del viaje',
+              subtitle: '${clientRequest?.fareAssigned ?? ''}',
+              subtitleColor: const Color(0xFFFF8000),
+              subtitleBold: true,
+            ),
+            const SizedBox(height: 8),
+            state.statusTrip == StatusTrip.ARRIVED
+                ? _actionUpdateStatus(
+                    'FINALIZAR VIAJE', Icons.power_settings_new, () {
+                    context
+                        .read<DriverMapTripBloc>()
+                        .add(UpdateStatusToFinished());
+                  })
+                : _actionUpdateStatus('NOTIFICAR LLEGADA', Icons.check, () {
+                    context
+                        .read<DriverMapTripBloc>()
+                        .add(UpdateStatusToArrived());
+                  }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _etaText() {
+    final durationText = timeAndDistanceValues?.duration.text ??
+        clientRequest?.googleDistanceMatrix?.duration.text;
+    final distanceText = timeAndDistanceValues?.distance.text ??
+        clientRequest?.googleDistanceMatrix?.distance.text;
+    if (durationText == null || durationText.isEmpty) {
+      return 'Tiempo estimado: --';
+    }
+    if (distanceText == null || distanceText.isEmpty) {
+      return 'Tiempo estimado: $durationText';
+    }
+    return 'Tiempo estimado: $durationText ($distanceText)';
+  }
+
+  Widget _infoRow({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    Color subtitleColor = Colors.black87,
+    bool subtitleBold = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: const Color(0xFFFF8000), size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: subtitleColor,
+                    fontWeight:
+                        subtitleBold ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+              ],
             ),
           ),
-          state.statusTrip == StatusTrip.ARRIVED
-              ? _actionUpdateStatus(
-                  'FINALIZAR VIAJE', Icons.power_settings_new, () {
-                  context
-                      .read<DriverMapTripBloc>()
-                      .add(UpdateStatusToFinished());
-                })
-              : _actionUpdateStatus('NOTIFICAR LLEGADA', Icons.check, () {
-                  context
-                      .read<DriverMapTripBloc>()
-                      .add(UpdateStatusToArrived());
-                }),
         ],
       ),
     );
   }
 
   Widget _actionUpdateStatus(
-      String option, IconData icon, Function() function) {
-    return GestureDetector(
-      onTap: () {
-        function();
-      },
-      child: Container(
-        margin: const EdgeInsets.only(left: 10, right: 0, top: 15),
-        child: ListTile(
-          contentPadding: EdgeInsets.zero,
-          title: Text(
-            option,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          leading: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: const BoxDecoration(
-              color: Color(0xFFFF8000),
-              borderRadius: BorderRadius.all(Radius.circular(50)),
+      String option, IconData icon, VoidCallback function) {
+    return InkWell(
+      onTap: function,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: const BoxDecoration(
+                color: Color(0xFFFF8000),
+                borderRadius: BorderRadius.all(Radius.circular(50)),
+              ),
+              child: Icon(icon, color: Colors.white, size: 22),
             ),
-            child: Icon(
-              icon,
-              color: Colors.white,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                option,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
   Widget _googleMaps(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.565,
-      child: GoogleMap(
-        mapType: MapType.normal,
-        initialCameraPosition: state.cameraPosition,
-        markers: Set<Marker>.of(state.markers.values),
-        polylines: Set<Polyline>.of(state.polylines.values),
-        onMapCreated: (GoogleMapController controller) {
-          controller.setMapStyle('[]');
-          if (state.controller != null) {
-            if (!state.controller!.isCompleted) {
-              state.controller?.complete(controller);
-            }
-          }
-        },
-      ),
+    return GoogleMap(
+      mapType: MapType.normal,
+      initialCameraPosition: state.cameraPosition,
+      markers: Set<Marker>.of(state.markers.values),
+      polylines: Set<Polyline>.of(state.polylines.values),
+      onMapCreated: (GoogleMapController controller) {
+        controller.setMapStyle('[]');
+        if (state.controller != null && !state.controller!.isCompleted) {
+          state.controller?.complete(controller);
+        }
+      },
     );
   }
 }

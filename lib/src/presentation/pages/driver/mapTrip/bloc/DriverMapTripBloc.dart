@@ -6,22 +6,58 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:rabbit_flutter/blocSocketIO/BlocSocketIO.dart';
 import 'package:rabbit_flutter/main.dart';
 import 'package:rabbit_flutter/src/domain/models/ClientRequestResponse.dart';
+import 'package:rabbit_flutter/src/domain/models/DriverPosition.dart';
 import 'package:rabbit_flutter/src/domain/models/StatusTrip.dart';
+import 'package:rabbit_flutter/src/domain/models/TimeAndDistanceValues.dart'
+    hide Duration;
+import 'package:rabbit_flutter/src/domain/useCases/auth/AuthUseCases.dart';
 import 'package:rabbit_flutter/src/domain/useCases/client-requests/ClientRequestsUseCases.dart';
+import 'package:rabbit_flutter/src/domain/useCases/drivers-position/DriversPositionUseCases.dart';
 import 'package:rabbit_flutter/src/domain/useCases/geolocator/GeolocatorUseCases.dart';
 import 'package:rabbit_flutter/src/domain/utils/Resource.dart';
 import 'package:rabbit_flutter/src/presentation/pages/driver/mapTrip/bloc/DriverMapTripEvent.dart';
 import 'package:rabbit_flutter/src/presentation/pages/driver/mapTrip/bloc/DriverMapTripState.dart';
+import 'package:rabbit_flutter/src/presentation/utils/CalculateRotation.dart';
 
 class DriverMapTripBloc extends Bloc<DriverMapTripEvent, DriverMapTripState> {
+  Timer? timer;
   BlocSocketIO blocSocketIO;
   StreamSubscription? positionSubscription;
   bool _isClosed = false;
   ClientRequestsUseCases clientRequestsUseCases;
   GeolocatorUseCases geolocatorUseCases;
+  DriversPositionUseCases driversPositionUseCases;
+  AuthUseCases authUseCases;
+  double? _lastLat;
+  double? _lastLng;
+  String? _activePolylineId;
 
-  DriverMapTripBloc(
-      this.blocSocketIO, this.clientRequestsUseCases, this.geolocatorUseCases)
+  void _startOrRefreshEtaTimer() {
+    timer?.cancel();
+    timer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (_isClosed || state.position == null) return;
+      add(GetTimeAndDistanceValues());
+    });
+  }
+
+  ({double lat, double lng}) _routeTarget() {
+    final request = state.clientRequestResponse;
+    if (request == null) {
+      return (lat: state.position?.latitude ?? 0, lng: state.position?.longitude ?? 0);
+    }
+    final toDestination = state.statusTrip == StatusTrip.ARRIVED;
+    return (
+      lat: toDestination
+          ? request.destinationPosition.x
+          : request.pickupPosition.x,
+      lng: toDestination
+          ? request.destinationPosition.y
+          : request.pickupPosition.y,
+    );
+  }
+
+  DriverMapTripBloc(this.blocSocketIO, this.clientRequestsUseCases,
+      this.geolocatorUseCases, this.driversPositionUseCases, this.authUseCases)
       : super(DriverMapTripState()) {
     on<InitDriverMapTripEvent>((event, emit) async {
       Completer<GoogleMapController> controller =
@@ -70,6 +106,23 @@ class DriverMapTripBloc extends Bloc<DriverMapTripEvent, DriverMapTripState> {
       }
     });
 
+    on<GetTimeAndDistanceValues>((event, emit) async {
+      final request = state.clientRequestResponse;
+      final position = state.position;
+      if (request == null || position == null) return;
+
+      final target = _routeTarget();
+      final response = await clientRequestsUseCases.getTimeAndDistance.run(
+        position.latitude,
+        position.longitude,
+        target.lat,
+        target.lng,
+      );
+      if (response is Success<TimeAndDistanceValues>) {
+        emit(state.copyWith(timeAndDistanceValues: response.data));
+      }
+    });
+
     on<SetClientRequestData>((event, emit) async {
       final data = event.clientRequest;
       emit(state.copyWith(
@@ -96,32 +149,58 @@ class DriverMapTripBloc extends Bloc<DriverMapTripEvent, DriverMapTripState> {
     });
 
     on<AddPolyline>((event, emit) async {
-      if (state.position != null && state.clientRequestResponse != null) {
-        List<LatLng> polylineCoordinates =
-            await geolocatorUseCases.getPolyline.run(
+      if (state.clientRequestResponse == null) return;
+      List<LatLng> polylineCoordinates =
+          await geolocatorUseCases.getPolyline.run(
+        LatLng(event.originLat, event.originLng),
+        LatLng(event.destinationLat, event.destinationLng),
+      );
+      if (polylineCoordinates.isEmpty) {
+        polylineCoordinates = [
           LatLng(event.originLat, event.originLng),
           LatLng(event.destinationLat, event.destinationLng),
-        );
-        if (polylineCoordinates.isEmpty) {
-          // Fallback para no dejar el mapa sin ruta visible.
-          polylineCoordinates = [
-            LatLng(event.originLat, event.originLng),
-            LatLng(event.destinationLat, event.destinationLng),
-          ];
-        }
-        PolylineId id = PolylineId(event.idPolyline);
-        Polyline polyline = Polyline(
-            polylineId: id,
-            color: Colors.orange,
-            points: polylineCoordinates,
-            width: 8);
-        emit(state.copyWith(polylines: {id: polyline}));
+        ];
       }
+      PolylineId id = PolylineId(event.idPolyline);
+      Polyline polyline = Polyline(
+          polylineId: id,
+          color: Colors.orange,
+          points: polylineCoordinates,
+          width: 8);
+      _activePolylineId = event.idPolyline;
+      emit(state.copyWith(
+        polylines: Map.of(state.polylines)..[id] = polyline,
+      ));
+    });
+
+    on<UpdatePolyline>((event, emit) {
+      final polylineId = _activePolylineId ?? 'pickup_polyline';
+      final id = PolylineId(polylineId);
+      final polyline = state.polylines[id];
+      if (polyline == null) return;
+
+      final updatedPoints = List<LatLng>.from(polyline.points);
+      final index = updatedPoints.indexWhere(
+          (point) => distanceBetween(event.driverPosition, point) < 25);
+      if (index != -1) {
+        updatedPoints.removeRange(0, index + 1);
+      }
+      if (updatedPoints.isEmpty) return;
+
+      emit(state.copyWith(polylines: {
+        id: polyline.copyWith(pointsParam: updatedPoints),
+      }));
     });
 
     on<FindPosition>((event, emit) async {
-      geolocator.Position position =
-          await geolocatorUseCases.findPosition.run();
+      positionSubscription?.cancel();
+      geolocator.Position position;
+      try {
+        position = await geolocatorUseCases.findPosition.run();
+      } catch (e) {
+        print('DriverMapTrip FindPosition error: $e');
+        return;
+      }
       add(ChangeMapCameraPosition(
           lat: position.latitude, lng: position.longitude));
       add(AddMyPositionMarker(lat: position.latitude, lng: position.longitude));
@@ -134,14 +213,38 @@ class DriverMapTripBloc extends Bloc<DriverMapTripEvent, DriverMapTripState> {
       });
       emit(state.copyWith(
         position: position,
+        cameraPosition: CameraPosition(
+          target: LatLng(position.latitude, position.longitude),
+          zoom: 14,
+        ),
       ));
-      add(AddPolyline(
-        idPolyline: "pickup_polyline",
-        originLat: state.position!.latitude,
-        originLng: state.position!.longitude,
-        destinationLat: state.clientRequestResponse!.pickupPosition.x,
-        destinationLng: state.clientRequestResponse!.pickupPosition.y,
-      ));
+      add(GetTimeAndDistanceValues());
+      _startOrRefreshEtaTimer();
+
+      final request = state.clientRequestResponse;
+      final idDriver = (await authUseCases.getUserSession.run()).user.id;
+      if (idDriver != null && idDriver > 0) {
+        await driversPositionUseCases.createDriverPosition.run(DriverPosition(
+          idDriver: idDriver,
+          lat: position.latitude,
+          lng: position.longitude,
+        ));
+      }
+      if (request != null) {
+        add(EmitDriverPositionSocketIO(
+          lat: position.latitude,
+          lng: position.longitude,
+          idClient: request.idClient,
+          idClientRequest: request.id,
+        ));
+        add(AddPolyline(
+          idPolyline: 'pickup_polyline',
+          originLat: position.latitude,
+          originLng: position.longitude,
+          destinationLat: request.pickupPosition.x,
+          destinationLng: request.pickupPosition.y,
+        ));
+      }
     });
 
     on<AddMyPositionMarker>((event, emit) async {
@@ -161,28 +264,62 @@ class DriverMapTripBloc extends Bloc<DriverMapTripEvent, DriverMapTripState> {
     });
 
     on<UpdateLocation>((event, emit) async {
-      add(AddMyPositionMarker(
-          lat: event.position.latitude, lng: event.position.longitude));
-      add(ChangeMapCameraPosition(
-          lat: event.position.latitude, lng: event.position.longitude));
+      final lat = event.position.latitude;
+      final lng = event.position.longitude;
+      if (_lastLat != null && _lastLng != null) {
+        final moved =
+            distanceBetween(LatLng(_lastLat!, _lastLng!), LatLng(lat, lng));
+        if (moved < 0.5) return;
+      }
+      _lastLat = lat;
+      _lastLng = lng;
+
+      add(AddMyPositionMarker(lat: lat, lng: lng));
       emit(state.copyWith(position: event.position));
-      if (state.clientRequestResponse != null) {
-        final status = state.statusTrip;
-        final toDestination = status == StatusTrip.ARRIVED;
-        add(AddPolyline(
-          idPolyline:
-              toDestination ? "destination_polyline" : "pickup_polyline",
-          originLat: event.position.latitude,
-          originLng: event.position.longitude,
-          destinationLat: toDestination
-              ? state.clientRequestResponse!.destinationPosition.x
-              : state.clientRequestResponse!.pickupPosition.x,
-          destinationLng: toDestination
-              ? state.clientRequestResponse!.destinationPosition.y
-              : state.clientRequestResponse!.pickupPosition.y,
+
+      final idDriver = (await authUseCases.getUserSession.run()).user.id;
+      if (idDriver != null && idDriver > 0) {
+        await driversPositionUseCases.createDriverPosition.run(DriverPosition(
+          idDriver: idDriver,
+          lat: lat,
+          lng: lng,
         ));
       }
-      add(EmitDriverPositionSocketIO());
+
+      final request = state.clientRequestResponse;
+      if (request != null) {
+        final status = state.statusTrip;
+        final toDestination = status == StatusTrip.ARRIVED;
+        final polylineId =
+            toDestination ? 'destination_polyline' : 'pickup_polyline';
+        final destinationLat = toDestination
+            ? request.destinationPosition.x
+            : request.pickupPosition.x;
+        final destinationLng = toDestination
+            ? request.destinationPosition.y
+            : request.pickupPosition.y;
+        final activePolyline = state.polylines[PolylineId(polylineId)];
+
+        if (activePolyline == null || _activePolylineId != polylineId) {
+          add(AddPolyline(
+            idPolyline: polylineId,
+            originLat: lat,
+            originLng: lng,
+            destinationLat: destinationLat,
+            destinationLng: destinationLng,
+          ));
+        } else {
+          add(UpdatePolyline(driverPosition: LatLng(lat, lng)));
+        }
+
+        add(EmitDriverPositionSocketIO(
+          lat: lat,
+          lng: lng,
+          idClient: request.idClient,
+          idClientRequest: request.id,
+        ));
+        add(GetTimeAndDistanceValues());
+      }
     });
 
     on<StopLocation>((event, emit) {
@@ -190,13 +327,13 @@ class DriverMapTripBloc extends Bloc<DriverMapTripEvent, DriverMapTripState> {
     });
 
     on<EmitDriverPositionSocketIO>((event, emit) async {
-      if (state.clientRequestResponse != null) {
-        blocSocketIO.state.socket?.emit('trip_change_driver_position', {
-          'id_client': state.clientRequestResponse!.idClient,
-          'lat': state.position!.latitude,
-          'lng': state.position!.longitude,
-        });
-      }
+      blocSocketIO.state.socket?.emit('trip_change_driver_position', {
+        'id_client': event.idClient,
+        if (event.idClientRequest != null)
+          'id_client_request': event.idClientRequest,
+        'lat': event.lat,
+        'lng': event.lng,
+      });
     });
 
     on<EmitUpdateStatusSocketIO>((event, emit) async {
@@ -212,6 +349,7 @@ class DriverMapTripBloc extends Bloc<DriverMapTripEvent, DriverMapTripState> {
       Resource response = await clientRequestsUseCases.updateStatusClientRequest
           .run(state.clientRequestResponse!.id, StatusTrip.ARRIVED);
       if (response is Success) {
+        _activePolylineId = 'destination_polyline';
         emit(state.copyWith(statusTrip: StatusTrip.ARRIVED));
         if (state.position != null) {
           add(AddPolyline(
@@ -226,6 +364,8 @@ class DriverMapTripBloc extends Bloc<DriverMapTripEvent, DriverMapTripState> {
             lat: state.clientRequestResponse!.destinationPosition.x,
             lng: state.clientRequestResponse!.destinationPosition.y));
         add(RemoveMarker(idMarker: 'pickup'));
+        add(GetTimeAndDistanceValues());
+        _startOrRefreshEtaTimer();
         add(EmitUpdateStatusSocketIO());
       }
     });
@@ -234,6 +374,8 @@ class DriverMapTripBloc extends Bloc<DriverMapTripEvent, DriverMapTripState> {
       Resource response = await clientRequestsUseCases.updateStatusClientRequest
           .run(state.clientRequestResponse!.id, StatusTrip.FINISHED);
       if (response is Success) {
+        timer?.cancel();
+        timer = null;
         emit(state.copyWith(statusTrip: StatusTrip.FINISHED));
         add(EmitUpdateStatusSocketIO());
         navigatorKey.currentState?.pushNamedAndRemoveUntil(
@@ -246,6 +388,8 @@ class DriverMapTripBloc extends Bloc<DriverMapTripEvent, DriverMapTripState> {
   @override
   Future<void> close() {
     _isClosed = true;
+    timer?.cancel();
+    timer = null;
     positionSubscription?.cancel();
     return super.close();
   }

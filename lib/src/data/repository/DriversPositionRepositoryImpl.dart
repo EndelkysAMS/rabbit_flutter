@@ -24,4 +24,11 @@ class DriversPositionRepositoryImpl implements DriverPositionRepository {
     return driversPositionService.getDriverPosition(idDriver);
   }
 
+  @override
+  Future<Resource<List<DriverPosition>>> getNearbyDrivers(
+    double clientLat,
+    double clientLng,
+  ) {
+    return driversPositionService.getNearbyDrivers(clientLat, clientLng);
+  }
 }

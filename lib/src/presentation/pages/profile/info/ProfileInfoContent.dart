@@ -11,41 +11,53 @@ class ProfileInfoContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Column(
-          children: [
-            _headerProfile(context),
-            Spacer(),
-            _actionProfile('Editar Perfil', Icons.edit, () {
-              Navigator.pushNamed(context, 'profile/update', arguments: user);
-            }),
-            _actionProfile('Cerrar Sesión', Icons.settings_power, () {
-              context.read<ProfileInfoBloc>().add(LogoutProfile());
-            }),
-            SizedBox(
-              height: 35,
-            )
-          ],
+    final minHeight = MediaQuery.of(context).size.height;
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: minHeight),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Column(
+                children: [
+                  _headerProfile(context),
+                  const SizedBox(height: 110),
+                  _actionProfile('Editar Perfil', Icons.edit, () {
+                    Navigator.pushNamed(
+                        context, 'profile/update', arguments: user);
+                  }),
+                  _actionProfile('Cerrar Sesión', Icons.settings_power, () {
+                    context.read<ProfileInfoBloc>().add(LogoutProfile());
+                  }, isFirst: false),
+                  const SizedBox(height: 35),
+                ],
+              ),
+              _cardUserInfo(context),
+            ],
+          ),
         ),
-        _cardUserInfo(context)
-      ],
+      ),
     );
   }
 
   Widget _cardUserInfo(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(left: 20, right: 20, top: 160),
+      margin: const EdgeInsets.only(left: 24, right: 24, top: 132),
       width: MediaQuery.of(context).size.width,
-      height: 250,
+      height: 200,
       child: Card(
         color: Colors.white,
         surfaceTintColor: Colors.white,
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 115,
-              margin: EdgeInsets.only(top: 15, bottom: 15),
+              width: 88,
+              margin: const EdgeInsets.only(top: 10, bottom: 10),
               child: AspectRatio(
                 aspectRatio: 1,
                 child: ClipOval(
@@ -67,15 +79,16 @@ class ProfileInfoContent extends StatelessWidget {
             ),
             Text(
               '${user?.name ?? ''} ${user?.lastname ?? ''}',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
+            const SizedBox(height: 2),
             Text(
               user?.email ?? '',
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(color: Colors.grey[600], fontSize: 13),
             ),
             Text(
               user?.phone ?? '',
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(color: Colors.grey[600], fontSize: 13),
             ),
           ],
         ),
@@ -83,26 +96,35 @@ class ProfileInfoContent extends StatelessWidget {
     );
   }
 
-  Widget _actionProfile(String option, IconData icon, Function() function) {
+  Widget _actionProfile(
+    String option,
+    IconData icon,
+    Function() function, {
+    bool isFirst = true,
+  }) {
     return GestureDetector(
       onTap: () {
         function();
       },
       child: Container(
-        margin: EdgeInsets.only(left: 20, right: 20, top: 15),
+        margin: EdgeInsets.only(left: 20, right: 20, top: isFirst ? 10 : 4),
         child: ListTile(
+          dense: true,
+          visualDensity: VisualDensity.compact,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 8),
           title: Text(
             option,
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
           ),
           leading: Container(
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
+            padding: const EdgeInsets.all(8),
+            decoration: const BoxDecoration(
                 color: Color(0xFFFF8000),
                 borderRadius: BorderRadius.all(Radius.circular(50))),
             child: Icon(
               icon,
               color: Colors.white,
+              size: 20,
             ),
           ),
         ),

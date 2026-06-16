@@ -6,17 +6,56 @@ import 'package:rabbit_flutter/src/presentation/pages/driver/bikeInfo/bloc/Drive
 import 'package:rabbit_flutter/src/presentation/pages/widgets/DefaultTextField.dart';
 import 'package:rabbit_flutter/src/presentation/utils/BlocFormItem.dart';
 
-class DriverBikeInfoContent extends StatelessWidget {
-  final DriverBikeInfoState state;
+class DriverBikeInfoContent extends StatefulWidget {
+  final DriverBikeInfoState? state;
 
-  const DriverBikeInfoContent(this.state, {super.key});
+  const DriverBikeInfoContent({super.key, this.state});
+
+  @override
+  State<DriverBikeInfoContent> createState() => _DriverBikeInfoContentState();
+}
+
+class _DriverBikeInfoContentState extends State<DriverBikeInfoContent> {
+  late final TextEditingController _brandCtrl;
+  late final TextEditingController _plateCtrl;
+  late final TextEditingController _colorCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _brandCtrl = TextEditingController(text: widget.state?.brand.value ?? '');
+    _plateCtrl = TextEditingController(text: widget.state?.plate.value ?? '');
+    _colorCtrl = TextEditingController(text: widget.state?.color.value ?? '');
+  }
+
+  @override
+  void didUpdateWidget(covariant DriverBikeInfoContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final state = widget.state;
+    if (state == null) return;
+
+    if (oldWidget.state?.isInitialized != true && state.isInitialized) {
+      _brandCtrl.text = state.brand.value;
+      _plateCtrl.text = state.plate.value;
+      _colorCtrl.text = state.color.value;
+    }
+  }
+
+  @override
+  void dispose() {
+    _brandCtrl.dispose();
+    _plateCtrl.dispose();
+    _colorCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final state = widget.state;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Form(
-      key: state.formKey,
+      key: state?.formKey,
       child: SingleChildScrollView(
         padding: EdgeInsets.only(bottom: bottomInset + 24),
         child: Column(
@@ -25,17 +64,17 @@ class DriverBikeInfoContent extends StatelessWidget {
               clipBehavior: Clip.none,
               children: [
                 _headerProfile(context),
-                _cardUserInfo(context),
+                if (state != null) _cardUserInfo(context, state),
               ],
             ),
-            _actionProfile(context, 'Actualizar Datos', Icons.check),
+            if (state != null) _actionProfile(context, state),
           ],
         ),
       ),
     );
   }
 
-  Widget _cardUserInfo(BuildContext context) {
+  Widget _cardUserInfo(BuildContext context, DriverBikeInfoState state) {
     return Container(
       margin: EdgeInsets.only(
         left: 35,
@@ -54,10 +93,10 @@ class DriverBikeInfoContent extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 30, right: 30, top: 15),
                 child: DefaultTextField(
+                  controller: _brandCtrl,
                   hintText: 'Marca de la moto',
-                  icon: Icons.person,
+                  icon: Icons.two_wheeler,
                   backgroundColor: Colors.grey[200]!,
-                  initialValue: state.brand.value,
                   onChanged: (text) {
                     context.read<DriverBikeInfoBloc>().add(
                           BrandChanged(brand: BlocFormItem(value: text)),
@@ -69,11 +108,10 @@ class DriverBikeInfoContent extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 30, right: 30, top: 15),
                 child: DefaultTextField(
+                  controller: _plateCtrl,
                   hintText: 'Placa de la moto',
-                  icon: Icons.person_outline,
+                  icon: Icons.pin,
                   backgroundColor: Colors.grey[200]!,
-                  initialValue: state.plate.value,
-                  keyboardType: TextInputType.phone,
                   onChanged: (text) {
                     context.read<DriverBikeInfoBloc>().add(
                           PlateChanged(plate: BlocFormItem(value: text)),
@@ -85,9 +123,9 @@ class DriverBikeInfoContent extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 30, right: 30, top: 15),
                 child: DefaultTextField(
+                  controller: _colorCtrl,
                   hintText: 'Color',
-                  icon: Icons.phone,
-                  initialValue: state.color.value,
+                  icon: Icons.palette_outlined,
                   backgroundColor: Colors.grey[200]!,
                   onChanged: (text) {
                     context.read<DriverBikeInfoBloc>().add(
@@ -104,23 +142,19 @@ class DriverBikeInfoContent extends StatelessWidget {
     );
   }
 
-  Widget _actionProfile(BuildContext context, String option, IconData icon) {
+  Widget _actionProfile(BuildContext context, DriverBikeInfoState state) {
     return GestureDetector(
       onTap: () {
-        if (state.formKey!.currentState != null) {
-          if (state.formKey!.currentState!.validate()) {
-            context.read<DriverBikeInfoBloc>().add(FormSubmit());
-          }
-        } else {
+        if (state.formKey?.currentState?.validate() ?? false) {
           context.read<DriverBikeInfoBloc>().add(FormSubmit());
         }
       },
       child: Container(
         margin: const EdgeInsets.only(left: 20, right: 20, top: 15),
         child: ListTile(
-          title: Text(
-            option,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+          title: const Text(
+            'Actualizar Datos',
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
           leading: Container(
             padding: const EdgeInsets.all(10),
@@ -128,7 +162,7 @@ class DriverBikeInfoContent extends StatelessWidget {
               color: Color(0xFFFF8000),
               borderRadius: BorderRadius.all(Radius.circular(50)),
             ),
-            child: Icon(icon, color: Colors.white),
+            child: const Icon(Icons.check, color: Colors.white),
           ),
         ),
       ),

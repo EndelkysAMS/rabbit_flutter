@@ -130,16 +130,15 @@ class ClientDriverOffersItem extends StatelessWidget {
       child: AspectRatio(
         aspectRatio: 1,
         child: ClipOval(
-          child: driverTripRequest != null
-              ? driverTripRequest!.driver!.image != null
-                  ? FadeInImage.assetNetwork(
-                      placeholder: 'assets/img/user_image.jpg',
-                      image: driverTripRequest!.driver!.image!,
-                      fit: BoxFit.cover,
-                      fadeInDuration: const Duration(seconds: 1),
-                    )
-                  : Image.asset('assets/img/user_image.jpg')
-              : Container(),
+          child: driverTripRequest?.driver?.image != null &&
+                  driverTripRequest!.driver!.image!.isNotEmpty
+              ? FadeInImage.assetNetwork(
+                  placeholder: 'assets/img/user_image.jpg',
+                  image: driverTripRequest!.driver!.image!,
+                  fit: BoxFit.cover,
+                  fadeInDuration: const Duration(seconds: 1),
+                )
+              : Image.asset('assets/img/user_image.jpg'),
         ),
       ),
     );

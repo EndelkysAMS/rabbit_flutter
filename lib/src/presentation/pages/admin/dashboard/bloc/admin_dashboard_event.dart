@@ -5,6 +5,8 @@ abstract class AdminDashboardEvent {}
 
 class AdminDashboardInitEvent extends AdminDashboardEvent {}
 
+class LoadAdminPlanEvent extends AdminDashboardEvent {}
+
 class LoadDriversEvent extends AdminDashboardEvent {}
 
 class LoadInactiveDriversEvent extends AdminDashboardEvent {}
@@ -17,6 +19,11 @@ class CreateDriverEvent extends AdminDashboardEvent {
 class DeactivateDriverEvent extends AdminDashboardEvent {
   final int idDriver;
   DeactivateDriverEvent({required this.idDriver});
+}
+
+class ReactivateDriverEvent extends AdminDashboardEvent {
+  final int idDriver;
+  ReactivateDriverEvent({required this.idDriver});
 }
 
 class DeleteDriverEvent extends AdminDashboardEvent {
@@ -32,6 +39,8 @@ class UpdateAdminProfileEvent extends AdminDashboardEvent {
 class ClearCreateDriverResponseEvent extends AdminDashboardEvent {}
 
 class ClearDeactivateDriverResponseEvent extends AdminDashboardEvent {}
+
+class ClearReactivateDriverResponseEvent extends AdminDashboardEvent {}
 
 class ClearDeleteDriverResponseEvent extends AdminDashboardEvent {}
 

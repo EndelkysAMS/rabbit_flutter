@@ -1,4 +1,5 @@
 import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:rabbit_flutter/src/domain/models/ClientRequestResponse.dart'
     show ClientRequestResponse;
 
@@ -30,6 +31,12 @@ class AddPolyline extends DriverMapTripEvent {
     required this.destinationLat,
     required this.destinationLng,
   });
+}
+
+class UpdatePolyline extends DriverMapTripEvent {
+  final LatLng driverPosition;
+
+  UpdatePolyline({required this.driverPosition});
 }
 
 class ChangeMapCameraPosition extends DriverMapTripEvent {
@@ -77,7 +84,19 @@ class AddMyPositionMarker extends DriverMapTripEvent {
   final double lng;
   AddMyPositionMarker({ required this.lat, required this.lng });
 }
-class EmitDriverPositionSocketIO extends DriverMapTripEvent {}
+class EmitDriverPositionSocketIO extends DriverMapTripEvent {
+  final double lat;
+  final double lng;
+  final int idClient;
+  final int? idClientRequest;
+
+  EmitDriverPositionSocketIO({
+    required this.lat,
+    required this.lng,
+    required this.idClient,
+    this.idClientRequest,
+  });
+}
 class EmitUpdateStatusSocketIO extends DriverMapTripEvent {}
 class UpdateStatusToArrived extends DriverMapTripEvent {
 }

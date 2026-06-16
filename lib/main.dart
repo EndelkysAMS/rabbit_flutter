@@ -8,10 +8,14 @@ import 'package:rabbit_flutter/src/domain/utils/FirebasePushNotifications.dart';
 import 'package:rabbit_flutter/src/injection.dart';
 import 'package:rabbit_flutter/src/presentation/pages/auth/login/LoginPage.dart';
 import 'package:rabbit_flutter/src/presentation/pages/auth/register/RegisterPage.dart';
+import 'package:rabbit_flutter/src/presentation/pages/super/dashboard/super_dashboard_page.dart';
+import 'package:rabbit_flutter/src/presentation/pages/super/lines/super_lines_list_page.dart';
+import 'package:rabbit_flutter/src/presentation/pages/super/lines/super_line_detail_page.dart';
 import 'package:rabbit_flutter/src/presentation/pages/admin/dashboard/admin_dashboard_page.dart';
 import 'package:rabbit_flutter/src/presentation/pages/admin/create_driver/admin_create_driver_page.dart';
 import 'package:rabbit_flutter/src/presentation/pages/admin/drivers/admin_drivers_list_page.dart';
 import 'package:rabbit_flutter/src/presentation/pages/admin/delete_driver/admin_delete_driver_page.dart';
+import 'package:rabbit_flutter/src/presentation/pages/admin/plan/admin_plan_page.dart';
 import 'package:rabbit_flutter/src/presentation/pages/admin/profile/admin_profile_page.dart';
 import 'package:rabbit_flutter/src/presentation/pages/client/driverOffers/ClientDriverOffersPage.dart';
 import 'package:rabbit_flutter/src/presentation/pages/client/home/ClientHomePage.dart';
@@ -79,6 +83,12 @@ class _MyAppState extends State<MyApp> {
           "login": (BuildContext context) => LoginPage(),
           "register": (BuildContext context) => RegisterPage(),
           "roles": (BuildContext context) => RolesPage(),
+          "super/home": (BuildContext context) => const SuperDashboardPage(),
+          "super/lines": (BuildContext context) => const SuperLinesListPage(),
+          "super/lines/detail": (BuildContext context) {
+            final lineId = ModalRoute.of(context)!.settings.arguments as int;
+            return SuperLineDetailPage(lineId: lineId);
+          },
           "admin/home": (BuildContext context) => const AdminDashboardPage(),
           "admin/drivers/create": (BuildContext context) =>
               const AdminCreateDriverPage(),
@@ -87,6 +97,7 @@ class _MyAppState extends State<MyApp> {
           "admin/drivers/delete": (BuildContext context) =>
               const AdminDeleteDriverPage(),
           "admin/profile": (BuildContext context) => const AdminProfilePage(),
+          "admin/plan": (BuildContext context) => const AdminPlanPage(),
           "client/home": (BuildContext context) => ClientHomePage(),
           "driver/home": (BuildContext context) => DriverHomePage(),
           "client/map/booking": (BuildContext context) => ClientMapBookingInfoPage(),

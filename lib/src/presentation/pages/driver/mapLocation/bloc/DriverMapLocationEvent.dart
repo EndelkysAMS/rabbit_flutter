@@ -24,6 +24,8 @@ class ChangeMapCameraPosition extends DriverMapLocationEvent {
   });
 }
 
+class RetryPendingCamera extends DriverMapLocationEvent {}
+
 class SaveLocationData extends DriverMapLocationEvent {
   final DriverPosition driverPosition;
   SaveLocationData({ required this.driverPosition });

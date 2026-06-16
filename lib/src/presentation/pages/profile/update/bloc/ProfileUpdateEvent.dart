@@ -31,3 +31,5 @@ class UpdateUserSession extends ProfileUpdateEvent {
 class PickImage extends ProfileUpdateEvent {}
 class TakePhoto extends ProfileUpdateEvent {}
 class FormSubmit extends ProfileUpdateEvent {}
+
+class ClearProfileUpdateResponse extends ProfileUpdateEvent {}

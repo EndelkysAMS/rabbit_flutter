@@ -8,6 +8,8 @@ import 'package:rabbit_flutter/src/data/dataSource/remote/services/DriverBikeInf
 import 'package:rabbit_flutter/src/data/dataSource/remote/services/DriverTripRequestsService.dart';
 import 'package:rabbit_flutter/src/data/dataSource/remote/services/DriversPositionService.dart';
 import 'package:rabbit_flutter/src/data/dataSource/remote/services/UsersService.dart';
+import 'package:rabbit_flutter/src/data/dataSource/remote/services/SuperAdminService.dart';
+import 'package:rabbit_flutter/src/data/repository/SuperAdminRepositoryImpl.dart';
 import 'package:rabbit_flutter/src/data/repository/AdminLineaRepositoryImpl.dart';
 import 'package:rabbit_flutter/src/data/repository/AuthRepositorylmpl.dart';
 import 'package:rabbit_flutter/src/data/repository/ClientRequestsRepositoryImpl.dart';
@@ -30,9 +32,13 @@ import 'package:rabbit_flutter/src/domain/repository/UsersRepository.dart';
 import 'package:rabbit_flutter/src/domain/useCases/admin-linea/AdminLineaUseCases.dart';
 import 'package:rabbit_flutter/src/domain/useCases/admin-linea/CreateAdminLineaDriverUseCase.dart';
 import 'package:rabbit_flutter/src/domain/useCases/admin-linea/DeactivateAdminLineaDriverUseCase.dart';
+import 'package:rabbit_flutter/src/domain/useCases/admin-linea/ReactivateAdminLineaDriverUseCase.dart';
 import 'package:rabbit_flutter/src/domain/useCases/admin-linea/DeleteAdminLineaDriverUseCase.dart';
+import 'package:rabbit_flutter/src/domain/useCases/admin-linea/GetAdminLineaDashboardUseCase.dart';
 import 'package:rabbit_flutter/src/domain/useCases/admin-linea/GetAdminLineaDriversUseCase.dart';
 import 'package:rabbit_flutter/src/domain/useCases/admin-linea/UpdateAdminLineaProfileUseCase.dart';
+import 'package:rabbit_flutter/src/domain/repository/SuperAdminRepository.dart';
+import 'package:rabbit_flutter/src/domain/useCases/super-admin/SuperAdminUseCases.dart';
 import 'package:rabbit_flutter/src/domain/useCases/auth/AuthUseCases.dart';
 import 'package:rabbit_flutter/src/domain/useCases/auth/GetUserSessionUseCase.dart';
 import 'package:rabbit_flutter/src/domain/useCases/auth/LoginUseCase.dart';
@@ -60,6 +66,8 @@ import 'package:rabbit_flutter/src/domain/useCases/drivers-position/CreateDriver
 import 'package:rabbit_flutter/src/domain/useCases/drivers-position/DeleteDriverPositionUseCase.dart';
 import 'package:rabbit_flutter/src/domain/useCases/drivers-position/DriversPositionUseCases.dart';
 import 'package:rabbit_flutter/src/domain/useCases/drivers-position/GetDriverPositionUseCase.dart';
+import 'package:rabbit_flutter/src/domain/useCases/drivers-position/GetNearbyDriversUseCase.dart';
+import 'package:rabbit_flutter/src/domain/useCases/geolocator/CreateMarkerFromNetworkUseCase.dart';
 import 'package:rabbit_flutter/src/domain/useCases/geolocator/CreateMarkerUseCase.dart';
 import 'package:rabbit_flutter/src/domain/useCases/geolocator/FindPositionUseCase.dart';
 import 'package:rabbit_flutter/src/domain/useCases/geolocator/GeolocatorUseCases.dart';
@@ -80,7 +88,7 @@ abstract class AppModule {
   @injectable
   SharefPref get sharefPref => SharefPref();
 
-  @injectable
+  @lazySingleton
   Socket get socket => io(
       'http://${ApiConfig.API_RABBIT}',
       OptionBuilder()
@@ -101,6 +109,9 @@ abstract class AppModule {
 
   @injectable
   AuthService get authService => AuthService();
+
+  @injectable
+  SuperAdminService get superAdminService => SuperAdminService(sharefPref);
 
   @injectable
   AdminLineaService get adminLineaService => AdminLineaService(token);
@@ -124,6 +135,10 @@ abstract class AppModule {
   DriverBikeInfoService get driverBikeInfoService => DriverBikeInfoService(token);
 
   @injectable
+  SuperAdminRepository get superAdminRepository =>
+      SuperAdminRepositoryImpl(superAdminService);
+
+  @injectable
   AdminLineaRepository get adminLineaRepository =>
       AdminLineaRepositoryImpl(adminLineaService);
 
@@ -134,7 +149,7 @@ abstract class AppModule {
   @injectable
   UsersRepository get usersRepository => UsersRepositoryImpl(usersService);
 
-  @injectable
+  @lazySingleton
   SocketRepository get socketRepository => SocketRepositoryImpl(socket);
 
   @injectable
@@ -165,10 +180,16 @@ abstract class AppModule {
       logout: LogoutUseCase(authRepository));
 
   @injectable
+  SuperAdminUseCases get superAdminUseCases =>
+      SuperAdminUseCases(superAdminRepository);
+
+  @injectable
   AdminLineaUseCases get adminLineaUseCases => AdminLineaUseCases(
+      getDashboard: GetAdminLineaDashboardUseCase(adminLineaRepository),
       getDrivers: GetAdminLineaDriversUseCase(adminLineaRepository),
       createDriver: CreateAdminLineaDriverUseCase(adminLineaRepository),
       deactivateDriver: DeactivateAdminLineaDriverUseCase(adminLineaRepository),
+      reactivateDriver: ReactivateAdminLineaDriverUseCase(adminLineaRepository),
       deleteDriver: DeleteAdminLineaDriverUseCase(adminLineaRepository),
       updateProfile: UpdateAdminLineaProfileUseCase(adminLineaRepository));
 
@@ -181,12 +202,14 @@ abstract class AppModule {
   GeolocatorUseCases get geolocatorUseCases => GeolocatorUseCases(
       findPosition: FindPositionUseCase(geolocatorRepository),
       createMarker: CreateMarkerUseCase(geolocatorRepository),
+      createMarkerFromNetwork:
+          CreateMarkerFromNetworkUseCase(geolocatorRepository),
       getMarker: GetMarkerUseCase(geolocatorRepository),
       getPlacemarkData: GetPlacemarkDataUseCase(geolocatorRepository),
       getPolyline: GetPolylineUseCase(geolocatorRepository),
       getPositionStream: GetPositionStreamUseCase(geolocatorRepository));
 
-  @injectable
+  @lazySingleton
   SocketUseCases get socketUseCases => SocketUseCases(
       connect: ConnectSocketUseCase(socketRepository),
       disconnect: DisconnectSocketUseCase(socketRepository));
@@ -199,7 +222,9 @@ abstract class AppModule {
           deleteDriverPosition:
               DeleteDriverPositionUseCase(driversPositionRepository),
           getDriverPosition:
-              GetDriverPositionUseCase(driversPositionRepository));
+              GetDriverPositionUseCase(driversPositionRepository),
+          getNearbyDrivers:
+              GetNearbyDriversUseCase(driversPositionRepository));
 
 @injectable
   ClientRequestsUseCases get clientRequestsUseCases => ClientRequestsUseCases(

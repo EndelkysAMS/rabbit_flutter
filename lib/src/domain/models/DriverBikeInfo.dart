@@ -18,10 +18,12 @@ class DriverBikeInfo {
     });
 
     factory DriverBikeInfo.fromJson(Map<String, dynamic> json) => DriverBikeInfo(
-        idDriver: json["id_driver"],
-        brand: json["brand"],
-        plate: json["plate"],
-        color: json["color"],
+        idDriver: json["id_driver"] is int
+            ? json["id_driver"]
+            : int.tryParse(json["id_driver"]?.toString() ?? ''),
+        brand: json["brand"]?.toString() ?? '',
+        plate: json["plate"]?.toString() ?? '',
+        color: json["color"]?.toString() ?? '',
     );
 
     Map<String, dynamic> toJson() => {

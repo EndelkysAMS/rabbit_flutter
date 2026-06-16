@@ -20,6 +20,26 @@ class AdminDashboardBloc extends Bloc<AdminDashboardEvent, AdminDashboardState> 
       add(LoadDriversEvent());
     });
 
+    on<LoadAdminPlanEvent>((event, emit) async {
+      emit(state.copyWith(responseDashboard: Loading()));
+      final response = await adminLineaUseCases.getDashboard.run();
+      if (response is Success) {
+        emit(state.copyWith(
+          responseDashboard: response,
+          dashboard: response.data,
+          didLogout: false,
+        ));
+      } else if (response is ErrorData) {
+        if (response.message.toLowerCase().contains('401')) {
+          add(LogoutAdminEvent());
+        } else {
+          emit(state.copyWith(responseDashboard: response, didLogout: false));
+        }
+      } else {
+        emit(state.copyWith(responseDashboard: response, didLogout: false));
+      }
+    });
+
     on<LoadDriversEvent>((event, emit) async {
       emit(state.copyWith(responseDrivers: Loading()));
       final response = await adminLineaUseCases.getDrivers.run();
@@ -80,6 +100,20 @@ class AdminDashboardBloc extends Bloc<AdminDashboardEvent, AdminDashboardState> 
       }
     });
 
+    on<ReactivateDriverEvent>((event, emit) async {
+      emit(state.copyWith(responseReactivateDriver: Loading()));
+      final response =
+          await adminLineaUseCases.reactivateDriver.run(event.idDriver);
+      emit(state.copyWith(responseReactivateDriver: response));
+      if (response is Success) {
+        add(LoadDriversEvent());
+        add(LoadInactiveDriversEvent());
+      } else if (response is ErrorData &&
+          response.message.toLowerCase().contains('401')) {
+        add(LogoutAdminEvent());
+      }
+    });
+
     on<DeleteDriverEvent>((event, emit) async {
       emit(state.copyWith(responseDeleteDriver: Loading()));
       final response =
@@ -125,6 +159,10 @@ class AdminDashboardBloc extends Bloc<AdminDashboardEvent, AdminDashboardState> 
 
     on<ClearDeactivateDriverResponseEvent>((event, emit) {
       emit(state.copyWith(responseDeactivateDriver: null));
+    });
+
+    on<ClearReactivateDriverResponseEvent>((event, emit) {
+      emit(state.copyWith(responseReactivateDriver: null));
     });
 
     on<ClearUpdateProfileResponseEvent>((event, emit) {

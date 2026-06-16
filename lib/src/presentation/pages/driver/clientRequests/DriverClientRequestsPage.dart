@@ -39,7 +39,8 @@ class _DriverClientRequestsPageState extends State<DriverClientRequestsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocListener<DriverClientRequestsBloc, DriverClientRequestsState>(
+      body: SafeArea(
+        child: BlocListener<DriverClientRequestsBloc, DriverClientRequestsState>(
         listener: (context, state) {
           final responseCreateTripRequest =
               state.responseCreateDriverTripRequest;
@@ -90,6 +91,7 @@ class _DriverClientRequestsPageState extends State<DriverClientRequestsPage> {
             child: Text('Sin solicitudes cercanas por el momento'),
           );
         }),
+      ),
       ),
     );
   }

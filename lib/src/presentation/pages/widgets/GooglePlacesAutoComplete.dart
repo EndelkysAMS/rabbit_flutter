@@ -15,19 +15,22 @@ class GooglePlacesAutoComplete extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: GooglePlaceAutoCompleteTextField(
         textEditingController: controller,
-        boxDecoration: BoxDecoration(
+        boxDecoration: const BoxDecoration(
           color: Colors.white,
         ),
         inputDecoration: InputDecoration(
           hintText: hintText,
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(vertical: 10),
+          hintStyle: const TextStyle(fontSize: 14),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
         ),
         debounceTime: 400,
-        countries: ["ve"],
+        countries: const ["ve"],
         isLatLngRequired: true,
         getPlaceDetailWithLatLng: onPlaceSelected,
         itemClick: (Prediction prediction) {
@@ -35,31 +38,29 @@ class GooglePlacesAutoComplete extends StatelessWidget {
           controller.selection = TextSelection.fromPosition(
               TextPosition(offset: prediction.description?.length ?? 0));
         },
-        seperatedBuilder: Divider(),
-        containerHorizontalPadding: 10,
+        seperatedBuilder: const Divider(height: 1),
+        containerHorizontalPadding: 0,
         googleAPIKey: API_KEY_GOOGLE,
         itemBuilder: (context, index, Prediction prediction) {
-          return Container(
-            padding: EdgeInsets.all(10),
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: Row(
               children: [
-                Icon(Icons.location_on),
-                SizedBox(
-                  width: 7,
-                ),
+                const Icon(Icons.location_on, size: 18),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    "${prediction.description ?? ""}",
-                  )
-                )
+                    prediction.description ?? "",
+                    style: const TextStyle(fontSize: 13),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
             ),
           );
         },
-
         isCrossBtnShown: true,
-
-        // default 600 ms ,
       ),
     );
   }

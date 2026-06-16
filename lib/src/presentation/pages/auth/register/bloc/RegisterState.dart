@@ -16,8 +16,8 @@ class RegisterState extends Equatable {
   final Resource? response;
   
   const RegisterState({
-    this.name = const BlocFormItem(error: 'Ingresa tus nombres'),
-    this.lastname = const BlocFormItem(error: 'Ingresa  tus apellidos'),
+    this.name = const BlocFormItem(error: 'Ingresa tu nombre'),
+    this.lastname = const BlocFormItem(error: 'Ingresa tu apellido'),
     this.email = const BlocFormItem(error: 'Ingresa  el  email'),
     this.phone = const BlocFormItem(error: 'Ingresa  el teléfono'),
     this.password = const BlocFormItem(error: 'Ingresa la contraseña'),

@@ -15,11 +15,10 @@ class DriverBikeInfoPage extends StatefulWidget {
 }
 
 class _DriverBikeInfoPageState extends State<DriverBikeInfoPage> {
-
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DriverBikeInfoBloc>().add(DriverBikeInfoInitEvent());
     });
   }
@@ -28,27 +27,46 @@ class _DriverBikeInfoPageState extends State<DriverBikeInfoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocListener<DriverBikeInfoBloc, DriverBikeInfoState>(
+        listenWhen: (previous, current) =>
+            previous.response != current.response,
         listener: (context, state) {
           final response = state.response;
           if (response is ErrorData) {
-            Fluttertoast.showToast(msg: response.message, toastLength: Toast.LENGTH_LONG);
-          }
-          else if (response is Success) {
-            Fluttertoast.showToast(msg: 'Actualizacion exitosa', toastLength: Toast.LENGTH_LONG);
+            Fluttertoast.showToast(
+              msg: response.message,
+              toastLength: Toast.LENGTH_LONG,
+            );
+            context
+                .read<DriverBikeInfoBloc>()
+                .add(ClearDriverBikeInfoResponse());
+          } else if (response is Success) {
+            Fluttertoast.showToast(
+              msg: 'Actualizacion exitosa',
+              toastLength: Toast.LENGTH_LONG,
+            );
+            context
+                .read<DriverBikeInfoBloc>()
+                .add(ClearDriverBikeInfoResponse());
           }
         },
         child: BlocBuilder<DriverBikeInfoBloc, DriverBikeInfoState>(
           builder: (context, state) {
-            final response = state.response;
-            if (response is Loading) {
-              return Stack(
+            if (!state.isInitialized) {
+              return const Stack(
                 children: [
-                  DriverBikeInfoContent(state),
-                  Center(child: CircularProgressIndicator())
+                  DriverBikeInfoContent(),
+                  Center(child: CircularProgressIndicator()),
                 ],
               );
             }
-            return DriverBikeInfoContent(state);
+            final isSaving = state.response is Loading;
+            return Stack(
+              children: [
+                DriverBikeInfoContent(state: state),
+                if (isSaving)
+                  const Center(child: CircularProgressIndicator()),
+              ],
+            );
           },
         ),
       ),

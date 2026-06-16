@@ -30,7 +30,6 @@ class _ClientMapTripPageState extends State<ClientMapTripPage> {
     final bloc = context.read<ClientMapTripBloc>();
     bloc.add(InitClientMapTripEvent());
     bloc.add(GetClientRequest(idClientRequest: parsedId));
-    bloc.add(ListenTripNewDriverPosition());
     _isInitialized = true;
   }
 

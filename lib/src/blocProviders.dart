@@ -11,7 +11,9 @@ import 'package:rabbit_flutter/src/domain/useCases/socket/SocketUseCases.dart';
 import 'package:rabbit_flutter/src/domain/useCases/users/UsersUseCases.dart';
 import 'package:rabbit_flutter/src/injection.dart';
 import 'package:rabbit_flutter/src/presentation/pages/auth/login/bloc/LoginBloc.dart';
+import 'package:rabbit_flutter/src/domain/useCases/super-admin/SuperAdminUseCases.dart';
 import 'package:rabbit_flutter/src/presentation/pages/admin/dashboard/bloc/admin_dashboard_bloc.dart';
+import 'package:rabbit_flutter/src/presentation/pages/super/dashboard/bloc/super_dashboard_bloc.dart';
 import 'package:rabbit_flutter/src/presentation/pages/auth/login/bloc/LoginEvent.dart';
 import 'package:rabbit_flutter/src/presentation/pages/auth/register/bloc/RegisterBloc.dart';
 import 'package:rabbit_flutter/src/presentation/pages/auth/register/bloc/RegisterEvent.dart';
@@ -53,6 +55,9 @@ List<BlocProvider> blocProviders = [
   BlocProvider<RolesBloc>(
       create: (context) =>
           RolesBloc(locator<AuthUseCases>())..add(GetRolesList())),
+  BlocProvider<SuperDashboardBloc>(
+      create: (context) => SuperDashboardBloc(
+          locator<SuperAdminUseCases>(), locator<AuthUseCases>())),
   BlocProvider<AdminDashboardBloc>(
       create: (context) => AdminDashboardBloc(
           locator<AdminLineaUseCases>(), locator<AuthUseCases>())),
@@ -63,8 +68,11 @@ List<BlocProvider> blocProviders = [
       create: (context) =>
           ProfileUpdateBloc(locator<UsersUseCases>(), locator<AuthUseCases>())),
   BlocProvider<ClientMapSeekerBloc>(
-      create: (context) => ClientMapSeekerBloc(context.read<BlocSocketIO>(),
-          locator<GeolocatorUseCases>(), locator<SocketUseCases>())),
+      create: (context) => ClientMapSeekerBloc(
+          context.read<BlocSocketIO>(),
+          locator<GeolocatorUseCases>(),
+          locator<SocketUseCases>(),
+          locator<DriversPositionUseCases>())),
   BlocProvider<ClientMapBookingInfoBloc>(
       create: (context) => ClientMapBookingInfoBloc(
           context.read<BlocSocketIO>(),
@@ -101,8 +109,12 @@ List<BlocProvider> blocProviders = [
           locator<GeolocatorUseCases>(),
           locator<AuthUseCases>())),
   BlocProvider<DriverMapTripBloc>(
-      create: (context) => DriverMapTripBloc(context.read<BlocSocketIO>(),
-          locator<ClientRequestsUseCases>(), locator<GeolocatorUseCases>())),
+      create: (context) => DriverMapTripBloc(
+          context.read<BlocSocketIO>(),
+          locator<ClientRequestsUseCases>(),
+          locator<GeolocatorUseCases>(),
+          locator<DriversPositionUseCases>(),
+          locator<AuthUseCases>())),
   BlocProvider<DriverRatingTripBloc>(
       create: (context) =>
           DriverRatingTripBloc(locator<ClientRequestsUseCases>())),

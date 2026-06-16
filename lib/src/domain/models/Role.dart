@@ -12,10 +12,10 @@ class Role {
     });
 
     factory Role.fromJson(Map<String, dynamic> json) => Role(
-        id: json["id"],
-        name: json["name"],
-        image: json["image"],
-        route: json["route"],
+        id: json["id"]?.toString() ?? '',
+        name: json["name"]?.toString() ?? '',
+        image: json["image"]?.toString() ?? '',
+        route: json["route"]?.toString() ?? '',
     );
 
     Map<String, dynamic> toJson() => {

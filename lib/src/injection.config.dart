@@ -25,6 +25,8 @@ import 'package:rabbit_flutter/src/data/dataSource/remote/services/DriversPositi
     as _i156;
 import 'package:rabbit_flutter/src/data/dataSource/remote/services/DriverTripRequestsService.dart'
     as _i959;
+import 'package:rabbit_flutter/src/data/dataSource/remote/services/SuperAdminService.dart'
+    as _i450;
 import 'package:rabbit_flutter/src/data/dataSource/remote/services/UsersService.dart'
     as _i218;
 import 'package:rabbit_flutter/src/data/repository/DriverBikeInfoRepository.dart'
@@ -44,6 +46,8 @@ import 'package:rabbit_flutter/src/domain/repository/GeolocatorRepository.dart'
     as _i96;
 import 'package:rabbit_flutter/src/domain/repository/SocketRepository.dart'
     as _i307;
+import 'package:rabbit_flutter/src/domain/repository/SuperAdminRepository.dart'
+    as _i819;
 import 'package:rabbit_flutter/src/domain/repository/UsersRepository.dart'
     as _i298;
 import 'package:rabbit_flutter/src/domain/useCases/admin-linea/AdminLineaUseCases.dart'
@@ -62,6 +66,8 @@ import 'package:rabbit_flutter/src/domain/useCases/geolocator/GeolocatorUseCases
     as _i512;
 import 'package:rabbit_flutter/src/domain/useCases/socket/SocketUseCases.dart'
     as _i458;
+import 'package:rabbit_flutter/src/domain/useCases/super-admin/SuperAdminUseCases.dart'
+    as _i189;
 import 'package:rabbit_flutter/src/domain/useCases/users/UsersUseCases.dart'
     as _i61;
 import 'package:socket_io_client/socket_io_client.dart' as _i414;
@@ -79,9 +85,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     final appModule = _$AppModule();
     gh.factory<_i858.SharefPref>(() => appModule.sharefPref);
-    gh.factory<_i414.Socket>(() => appModule.socket);
     gh.factoryAsync<String>(() => appModule.token);
     gh.factory<_i565.AuthService>(() => appModule.authService);
+    gh.factory<_i450.SuperAdminService>(() => appModule.superAdminService);
     gh.factory<_i183.AdminLineaService>(() => appModule.adminLineaService);
     gh.factory<_i218.UsersService>(() => appModule.usersService);
     gh.factory<_i156.DriversPositionService>(
@@ -92,11 +98,12 @@ extension GetItInjectableX on _i174.GetIt {
         () => appModule.driverTripRequestsService);
     gh.factory<_i691.DriverBikeInfoService>(
         () => appModule.driverBikeInfoService);
+    gh.factory<_i819.SuperAdminRepository>(
+        () => appModule.superAdminRepository);
     gh.factory<_i474.AdminLineaRepository>(
         () => appModule.adminLineaRepository);
     gh.factory<_i972.AuthRepository>(() => appModule.authRepository);
     gh.factory<_i298.UsersRepository>(() => appModule.usersRepository);
-    gh.factory<_i307.SocketRepository>(() => appModule.socketRepository);
     gh.factory<_i116.ClientRequestsRepository>(
         () => appModule.clientRequestsRepository);
     gh.factory<_i96.GeolocatorRepository>(() => appModule.geolocatorRepository);
@@ -107,10 +114,10 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i920.DriverBikeInfoRepository>(
         () => appModule.driverBikeInfoRepository);
     gh.factory<_i811.AuthUseCases>(() => appModule.authUseCases);
+    gh.factory<_i189.SuperAdminUseCases>(() => appModule.superAdminUseCases);
     gh.factory<_i413.AdminLineaUseCases>(() => appModule.adminLineaUseCases);
     gh.factory<_i61.UsersUseCases>(() => appModule.usersUseCases);
     gh.factory<_i512.GeolocatorUseCases>(() => appModule.geolocatorUseCases);
-    gh.factory<_i458.SocketUseCases>(() => appModule.socketUseCases);
     gh.factory<_i103.DriversPositionUseCases>(
         () => appModule.driversPositionUseCases);
     gh.factory<_i821.ClientRequestsUseCases>(
@@ -119,6 +126,9 @@ extension GetItInjectableX on _i174.GetIt {
         () => appModule.driverTripRequestUseCases);
     gh.factory<_i299.DriverBikeInfoUseCases>(
         () => appModule.driverCarInfoUseCases);
+    gh.lazySingleton<_i414.Socket>(() => appModule.socket);
+    gh.lazySingleton<_i307.SocketRepository>(() => appModule.socketRepository);
+    gh.lazySingleton<_i458.SocketUseCases>(() => appModule.socketUseCases);
     return this;
   }
 }

@@ -8,6 +8,7 @@ abstract  class GeolocatorRepository {
 
   Future<Position> findPosition();
   Future<BitmapDescriptor> createMarkerFromAsset(String path);
+  Future<BitmapDescriptor> createMarkerFromNetwork(String? url);
   Marker getMarker(
     String markerId,
     double lat,

@@ -71,6 +71,38 @@ class _AdminDeleteDriverPageState extends State<AdminDeleteDriverPage>
     );
   }
 
+  void _confirmReactivate(BuildContext context, AdminLineaDriver driver) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: const Text('Reactivar conductor'),
+        content: Text(
+            '¿Reactivar a ${driver.name} ${driver.lastname}? Volverá a operar en la línea.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF8000),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              context
+                  .read<AdminDashboardBloc>()
+                  .add(ReactivateDriverEvent(idDriver: driver.id));
+              Navigator.pop(context);
+            },
+            child: const Text('Reactivar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _confirmDelete(BuildContext context, AdminLineaDriver driver) {
     showDialog(
       context: context,
@@ -128,6 +160,12 @@ class _AdminDeleteDriverPageState extends State<AdminDeleteDriverPage>
         ),
       ),
       body: BlocConsumer<AdminDashboardBloc, AdminDashboardState>(
+        listenWhen: (previous, current) =>
+            previous.responseDeactivateDriver !=
+                current.responseDeactivateDriver ||
+            previous.responseDeleteDriver != current.responseDeleteDriver ||
+            previous.responseReactivateDriver !=
+                current.responseReactivateDriver,
         listener: (context, state) {
           final deactivate = state.responseDeactivateDriver;
           if (deactivate is Success) {
@@ -156,6 +194,20 @@ class _AdminDeleteDriverPageState extends State<AdminDeleteDriverPage>
                 .read<AdminDashboardBloc>()
                 .add(ClearDeleteDriverResponseEvent());
           }
+
+          final reactivate = state.responseReactivateDriver;
+          if (reactivate is Success) {
+            Fluttertoast.showToast(msg: 'Conductor reactivado');
+            context
+                .read<AdminDashboardBloc>()
+                .add(ClearReactivateDriverResponseEvent());
+            _tabController.animateTo(0);
+          } else if (reactivate is ErrorData) {
+            Fluttertoast.showToast(msg: reactivate.message);
+            context
+                .read<AdminDashboardBloc>()
+                .add(ClearReactivateDriverResponseEvent());
+          }
         },
         builder: (context, state) {
           return TabBarView(
@@ -169,6 +221,7 @@ class _AdminDeleteDriverPageState extends State<AdminDeleteDriverPage>
               _InactiveDriversTab(
                 state: state,
                 onRefresh: _refreshAll,
+                onReactivate: (driver) => _confirmReactivate(context, driver),
                 onDelete: (driver) => _confirmDelete(context, driver),
               ),
             ],
@@ -243,17 +296,20 @@ class _ActiveDriversTab extends StatelessWidget {
 class _InactiveDriversTab extends StatelessWidget {
   final AdminDashboardState state;
   final VoidCallback onRefresh;
+  final void Function(AdminLineaDriver driver) onReactivate;
   final void Function(AdminLineaDriver driver) onDelete;
 
   const _InactiveDriversTab({
     required this.state,
     required this.onRefresh,
+    required this.onReactivate,
     required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
     final isBusy = state.responseInactiveDrivers is Loading ||
+        state.responseReactivateDriver is Loading ||
         state.responseDeleteDriver is Loading;
 
     return RefreshIndicator(
@@ -263,7 +319,7 @@ class _InactiveDriversTab extends StatelessWidget {
         children: [
           _HeaderBanner(
             text:
-                'Conductores inactivos. Elimínalos definitivamente si se salieron de la línea.',
+                'Conductores inactivos. Reactívalos para que vuelvan a operar, o elimínalos definitivamente si se salieron de la línea.',
           ),
           const SizedBox(height: 14),
           if (isBusy)
@@ -280,20 +336,41 @@ class _InactiveDriversTab extends StatelessWidget {
             ...state.inactiveDrivers.map(
               (driver) => _DriverCard(
                 driver: driver,
-                action: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => onDelete(driver),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red[700],
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                action: Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => onReactivate(driver),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFFF8000),
+                          side: const BorderSide(color: Color(0xFFFF8000)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(Icons.play_circle_outline, size: 18),
+                        label: const Text('Reactivar'),
                       ),
                     ),
-                    child: const Text('Eliminar definitivamente'),
-                  ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => onDelete(driver),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red[700],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Eliminar definitivamente'),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

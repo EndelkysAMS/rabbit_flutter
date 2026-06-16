@@ -35,9 +35,11 @@ class DriverTripRequest {
 
   factory DriverTripRequest.fromJson(Map<String, dynamic> json) =>
       DriverTripRequest(
-        id: json["id"],
-        idDriver: json["id_driver"],
-        idClientRequest: json["id_client_request"],
+        id: json["id"] is int
+            ? json["id"]
+            : int.tryParse(json["id"]?.toString() ?? ''),
+        idDriver: _toInt(json["id_driver"]),
+        idClientRequest: _toInt(json["id_client_request"]),
         fareOffered: _toDouble(json["fare_offered"]),
         time: _toDouble(json["time"]),
         distance: _toDouble(json["distance"]),
@@ -71,5 +73,10 @@ class DriverTripRequest {
     if (value == null) return 0;
     if (value is num) return value.toDouble();
     return double.tryParse(value.toString()) ?? 0;
+  }
+
+  static int _toInt(dynamic value) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '') ?? 0;
   }
 }

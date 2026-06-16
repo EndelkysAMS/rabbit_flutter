@@ -16,37 +16,45 @@ class ClientRatingTripContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const SizedBox(height: 50),
-        _iconCheck(),
-        const SizedBox(height: 15),
-        _textFinished(),
-        const SizedBox(height: 30),
-        _listTilePickup(),
-        _listTileDestination(),
-        const SizedBox(height: 70),
-        _textFare(),
-        _textFareValue(),
-        const SizedBox(height: 20),
-        _textRateYourClient(),
-        _ratingBar(context),
-        const Spacer(),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 36),
-          child: DefaultButton(
-            text: 'Calificar Conductor',
-            width: 240,
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black,
-            onPressed: () {
-              context.read<ClientRatingTripBloc>().add(
-                    UpdateRating(idClientRequest: clientRequestResponse!.id),
-                  );
-            },
+    final minHeight = MediaQuery.of(context).size.height;
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: minHeight),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+            child: Column(
+              children: [
+            _iconCheck(),
+            const SizedBox(height: 15),
+            _textFinished(),
+            const SizedBox(height: 24),
+            _listTilePickup(),
+            _listTileDestination(),
+            const SizedBox(height: 32),
+            _textFare(),
+            _textFareValue(),
+            const SizedBox(height: 20),
+            _textRateYourClient(),
+            _ratingBar(context),
+            const SizedBox(height: 32),
+            DefaultButton(
+              text: 'Calificar Conductor',
+              width: 240,
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              onPressed: () {
+                context.read<ClientRatingTripBloc>().add(
+                      UpdateRating(idClientRequest: clientRequestResponse!.id),
+                    );
+              },
+            ),
+              ],
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -149,7 +157,7 @@ class ClientRatingTripContent extends StatelessWidget {
     return const Icon(
       Icons.check_circle,
       color: Colors.white,
-      size: 100,
+      size: 72,
     );
   }
 }

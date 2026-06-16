@@ -39,6 +39,14 @@ class LoginContent extends StatelessWidget {
                     'assets/img/Logo.png',
                     width: 250,
                     height: 250,
+                    errorBuilder: (_, __, ___) => const Text(
+                      'Rabbit',
+                      style: TextStyle(
+                        fontSize: 42,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFFF8000),
+                      ),
+                    ),
                   ),
                   DefaultTextField(
                     controller: emailController,

@@ -26,7 +26,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
       state.copyWith(
         name: BlocFormItem(
           value: event.name.value,
-          error: event.name.value.isEmpty ? 'Ingresa tus nombres' : null
+          error: event.name.value.isEmpty ? 'Ingresa tu nombre' : null
         ),
         formKey: formKey
       )
@@ -38,7 +38,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
       state.copyWith(
         lastname: BlocFormItem(
           value: event.lastname.value,
-          error: event.lastname.value.isEmpty ? 'Ingresa tus apellidos' : null
+          error: event.lastname.value.isEmpty ? 'Ingresa tu apellido' : null
         ),
         formKey: formKey
       )

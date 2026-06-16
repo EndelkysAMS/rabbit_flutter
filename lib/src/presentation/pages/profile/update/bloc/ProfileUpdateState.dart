@@ -41,6 +41,7 @@ class ProfileUpdateState extends Equatable {
     GlobalKey<FormState>? formKey,
     Resource? response,
     bool clearImage = false,
+    bool clearResponse = false,
   }) {
     return ProfileUpdateState(
       id: id ?? this.id,
@@ -49,7 +50,7 @@ class ProfileUpdateState extends Equatable {
       phone: phone ?? this.phone,
       image: clearImage ? null : (image ?? this.image),
       formKey: formKey,
-      response: response ?? this.response, 
+      response: clearResponse ? null : (response ?? this.response),
     );
   }
 

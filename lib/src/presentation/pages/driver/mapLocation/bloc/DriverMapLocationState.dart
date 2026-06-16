@@ -13,14 +13,16 @@ class DriverMapLocationState extends Equatable{
   final CameraPosition cameraPosition;
   final Map<MarkerId, Marker> markers;
   final int? idDriver;
+  final String? locationError;
 
   DriverMapLocationState({
     this.position,
-    this.controller,
+    Completer<GoogleMapController>? controller,
     this.cameraPosition = const CameraPosition(target: LatLng(9.3789968, -70.7536265), zoom: 14.0),
     this.markers = const <MarkerId, Marker>{},
-    this.idDriver
-  });
+    this.idDriver,
+    this.locationError,
+  }) : controller = controller ?? Completer<GoogleMapController>();
 
   DriverMapLocationState copyWith({
     Position? position,
@@ -33,19 +35,24 @@ class DriverMapLocationState extends Equatable{
     String? destinationDescription,
     Map<MarkerId, Marker>? markers,
     Socket? socket,
-    int? idDriver
+    int? idDriver,
+    String? locationError,
+    bool clearLocationError = false,
   }) {
     return DriverMapLocationState(
       position: position ?? this.position,
       markers: markers ?? this.markers,
       controller: controller ?? this.controller,
       cameraPosition: cameraPosition ?? this.cameraPosition,
-      idDriver: idDriver ?? this.idDriver
+      idDriver: idDriver ?? this.idDriver,
+      locationError:
+          clearLocationError ? null : (locationError ?? this.locationError),
     );
   }
 
 
   @override
-  List<Object?> get props => [position, markers, controller, cameraPosition,  idDriver];
+  List<Object?> get props =>
+      [position, markers, controller, cameraPosition, idDriver, locationError];
 
 }

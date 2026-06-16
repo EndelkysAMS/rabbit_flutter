@@ -22,6 +22,7 @@ class _ClientRatingTripPageState extends State<ClientRatingTripPage> {
   Widget build(BuildContext context) {
     clientRequestResponse = ModalRoute.of(context)?.settings.arguments as ClientRequestResponse;
     return Scaffold(
+      backgroundColor: const Color(0xFFFF8000),
       body: BlocListener<ClientRatingTripBloc, ClientRatingTripState>(
         listener: (context, state) {
           final response = state.response;
@@ -34,10 +35,12 @@ class _ClientRatingTripPageState extends State<ClientRatingTripPage> {
         },
         child: BlocBuilder<ClientRatingTripBloc, ClientRatingTripState>(
           builder: (context, state) {
-            return Container(
-                decoration: const BoxDecoration(
-              color: Color(0xFFFF8000),),
-                child: ClientRatingTripContent(state, clientRequestResponse));
+            return SizedBox.expand(
+              child: ColoredBox(
+                color: const Color(0xFFFF8000),
+                child: ClientRatingTripContent(state, clientRequestResponse),
+              ),
+            );
           },
         ),
       ),

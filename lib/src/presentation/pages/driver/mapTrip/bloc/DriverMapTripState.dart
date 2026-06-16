@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart' as geolocator;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:rabbit_flutter/src/domain/models/ClientRequestResponse.dart';
 import 'package:rabbit_flutter/src/domain/models/StatusTrip.dart';
+import 'package:rabbit_flutter/src/domain/models/TimeAndDistanceValues.dart';
 import 'package:rabbit_flutter/src/domain/utils/Resource.dart';
 
 class DriverMapTripState extends Equatable {
@@ -15,6 +16,7 @@ class DriverMapTripState extends Equatable {
   final Map<MarkerId, Marker> markers;
   final Map<PolylineId, Polyline> polylines;
   final Resource? responseTimeAndDistance;
+  final TimeAndDistanceValues? timeAndDistanceValues;
   final geolocator.Position? position;
   final ClientRequestResponse? clientRequestResponse;
   final StatusTrip? statusTrip;
@@ -26,6 +28,7 @@ class DriverMapTripState extends Equatable {
     this.markers = const <MarkerId, Marker>{},
     this.polylines = const <PolylineId, Polyline>{},
     this.responseTimeAndDistance,
+    this.timeAndDistanceValues,
     this.position,
     this.clientRequestResponse,
     this.statusTrip
@@ -38,6 +41,7 @@ class DriverMapTripState extends Equatable {
     Map<MarkerId, Marker>? markers,
     Map<PolylineId, Polyline>? polylines,
     Resource? responseTimeAndDistance,
+    TimeAndDistanceValues? timeAndDistanceValues,
     geolocator.Position? position,
     int? idClient,
     ClientRequestResponse? clientRequestResponse,
@@ -50,6 +54,7 @@ class DriverMapTripState extends Equatable {
       controller: controller ?? this.controller,
       cameraPosition: cameraPosition ?? this.cameraPosition,
       responseTimeAndDistance: responseTimeAndDistance ?? this.responseTimeAndDistance,
+      timeAndDistanceValues: timeAndDistanceValues ?? this.timeAndDistanceValues,
       position: position ?? this.position,
       clientRequestResponse: clientRequestResponse ?? this.clientRequestResponse,
       statusTrip: statusTrip ?? this.statusTrip
@@ -58,6 +63,6 @@ class DriverMapTripState extends Equatable {
 
   @override
   // TODO: implement props
-  List<Object?> get props => [clientRequestResponse, position, responseGetClientRequest, responseTimeAndDistance, controller, markers, polylines, cameraPosition, statusTrip];
+  List<Object?> get props => [clientRequestResponse, position, responseGetClientRequest, responseTimeAndDistance, timeAndDistanceValues, controller, markers, polylines, cameraPosition, statusTrip];
 
 }

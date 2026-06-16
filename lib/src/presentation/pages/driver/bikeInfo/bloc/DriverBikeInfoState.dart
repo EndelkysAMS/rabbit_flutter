@@ -4,21 +4,22 @@ import 'package:rabbit_flutter/src/domain/utils/Resource.dart';
 import 'package:rabbit_flutter/src/presentation/utils/BlocFormItem.dart';
 
 class DriverBikeInfoState extends Equatable {
-
   final int? idDriver;
   final BlocFormItem brand;
   final BlocFormItem plate;
   final BlocFormItem color;
   final Resource? response;
   final GlobalKey<FormState>? formKey;
+  final bool isInitialized;
 
-  DriverBikeInfoState({
+  const DriverBikeInfoState({
     this.idDriver,
-    this.brand = const BlocFormItem(error: 'Ingresa el nombre'),
-    this.plate = const BlocFormItem(error: 'Ingresa el apellido'),
-    this.color = const BlocFormItem(error: 'Ingresa el telefono'),
+    this.brand = const BlocFormItem(error: 'Ingresa la marca de la moto'),
+    this.plate = const BlocFormItem(error: 'Ingresa la placa de la moto'),
+    this.color = const BlocFormItem(error: 'Ingresa el color de la moto'),
     this.formKey,
     this.response,
+    this.isInitialized = false,
   });
 
   DriverBikeInfoState copyWith({
@@ -27,7 +28,9 @@ class DriverBikeInfoState extends Equatable {
     BlocFormItem? plate,
     BlocFormItem? color,
     GlobalKey<FormState>? formKey,
-    Resource? response
+    Resource? response,
+    bool clearResponse = false,
+    bool? isInitialized,
   }) {
     return DriverBikeInfoState(
       idDriver: idDriver ?? this.idDriver,
@@ -35,12 +38,12 @@ class DriverBikeInfoState extends Equatable {
       plate: plate ?? this.plate,
       color: color ?? this.color,
       formKey: formKey,
-      response: response
+      response: clearResponse ? null : (response ?? this.response),
+      isInitialized: isInitialized ?? this.isInitialized,
     );
   }
 
   @override
-  // TODO: implement props
-  List<Object?> get props => [brand, plate, color, response, idDriver];
-
+  List<Object?> get props =>
+      [brand, plate, color, response, idDriver, isInitialized];
 }

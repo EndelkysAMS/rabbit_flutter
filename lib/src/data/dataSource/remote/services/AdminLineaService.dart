@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:rabbit_flutter/src/data/api/ApiConfig.dart';
 import 'package:rabbit_flutter/src/domain/models/AdminLineaCreateDriver.dart';
+import 'package:rabbit_flutter/src/domain/models/AdminLineaDashboard.dart';
 import 'package:rabbit_flutter/src/domain/models/AdminLineaDriver.dart';
 import 'package:rabbit_flutter/src/domain/models/AdminLineaProfile.dart';
 import 'package:rabbit_flutter/src/domain/utils/ListToString.dart';
@@ -42,6 +43,24 @@ class AdminLineaService {
     }
     if (data is String && data.isNotEmpty) return data;
     return fallback;
+  }
+
+  Future<Resource<AdminLineaDashboard>> getDashboard() async {
+    try {
+      final uri = Uri.http(ApiConfig.API_RABBIT, '/admin-linea/dashboard');
+      final response = await http.get(uri, headers: await _headers());
+      final data = _safeDecode(response);
+      debugPrint('[AdminLineaService] GET $uri -> ${response.statusCode}');
+      if (response.statusCode == 200) {
+        if (data is! Map<String, dynamic>) {
+          return ErrorData('Respuesta inválida del servidor');
+        }
+        return Success(AdminLineaDashboard.fromJson(data));
+      }
+      return ErrorData('HTTP ${response.statusCode}: ${_errorMessage(data)}');
+    } catch (e) {
+      return ErrorData(e.toString());
+    }
   }
 
   Future<Resource<List<AdminLineaDriver>>> getDrivers({bool? isActive}) async {
@@ -98,6 +117,28 @@ class AdminLineaService {
   Future<Resource<bool>> deactivateDriver(int idDriver) async {
     try {
       final uri = Uri.http(ApiConfig.API_RABBIT, '/admin-linea/drivers/$idDriver/deactivate');
+      final response = await http.patch(
+        uri,
+        headers: await _headers(),
+        body: json.encode({}),
+      );
+      final data = _safeDecode(response);
+      debugPrint('[AdminLineaService] PATCH $uri -> ${response.statusCode}');
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 204) {
+        return Success(true);
+      }
+      return ErrorData('HTTP ${response.statusCode}: ${_errorMessage(data)}');
+    } catch (e) {
+      return ErrorData(e.toString());
+    }
+  }
+
+  Future<Resource<bool>> reactivateDriver(int idDriver) async {
+    try {
+      final uri =
+          Uri.http(ApiConfig.API_RABBIT, '/admin-linea/drivers/$idDriver/reactivate');
       final response = await http.patch(
         uri,
         headers: await _headers(),

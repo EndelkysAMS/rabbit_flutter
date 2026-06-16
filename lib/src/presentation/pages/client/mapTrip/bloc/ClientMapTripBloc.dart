@@ -20,6 +20,7 @@ import 'package:rabbit_flutter/src/domain/utils/Resource.dart';
 import 'package:rabbit_flutter/src/presentation/pages/client/mapTrip/bloc/ClientMapTripEvent.dart';
 import 'package:rabbit_flutter/src/presentation/pages/client/mapTrip/bloc/ClientMapTripState.dart';
 import 'package:rabbit_flutter/src/presentation/utils/CalculateRotation.dart';
+import 'package:rabbit_flutter/src/presentation/utils/GeoCoords.dart';
 
 class ClientMapTripBloc extends Bloc<ClientMapTripEvent, ClientMapTripState> {
   Timer? timer;
@@ -37,16 +38,43 @@ class ClientMapTripBloc extends Bloc<ClientMapTripEvent, ClientMapTripState> {
       BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure);
   bool _driverBikeIconReady = false;
   Timer? _driverPositionPollingTimer;
+  double? _lastDriverLat;
+  double? _lastDriverLng;
+  String? _routeDestinationKey;
 
   void _startOrRefreshEtaTimer() {
     timer?.cancel();
-    // Actualiza ETA con frecuencia para reflejar avance del conductor.
-    timer = Timer.periodic(const Duration(seconds: 12), (_) {
-      if (isClosed || state.driverLatLng == null) return;
+    timer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (isClosed) return;
+      _fetchDriverPositionOnce();
+      if (state.driverLatLng == null) return;
       add(GetTimeAndDistanceValues(
           driverLat: state.driverLatLng!.latitude,
           driverLng: state.driverLatLng!.longitude));
     });
+  }
+
+  ({double lat, double lng}) _normalizeLatLng(double rawLat, double rawLng) {
+    return GeoCoords.normalize(rawLat, rawLng);
+  }
+
+  Future<void> _fetchDriverPositionOnce() async {
+    final request = state.clientRequestResponse;
+    final idDriver = request?.idDriverAssigned;
+    if (request == null || idDriver == null || idDriver <= 0) return;
+
+    final response =
+        await driversPositionUseCases.getDriverPosition.run(idDriver);
+    if (response is Success<DriverPosition>) {
+      final pos = response.data;
+      final normalized = GeoCoords.normalize(pos.lat, pos.lng);
+      if (!GeoCoords.isValid(normalized.lat, normalized.lng)) return;
+      print(
+          'driver position fetch lat=${normalized.lat} lng=${normalized.lng}');
+      add(SetDriverLatLng(lat: normalized.lat, lng: normalized.lng));
+    } else if (response is ErrorData) {
+      print('driver position fetch error: ${response.message}');
+    }
   }
 
   ({double lat, double lng}) _routeTarget(ClientRequestResponse request) {
@@ -183,7 +211,13 @@ class ClientMapTripBloc extends Bloc<ClientMapTripEvent, ClientMapTripState> {
         final data = response.data as ClientRequestResponse;
         print(
             'client trip loaded id=${data.id} idDriverAssigned=${data.idDriverAssigned}');
-        emit(state.copyWith(clientRequestResponse: data));
+        emit(state.copyWith(
+          clientRequestResponse: data,
+          cameraPosition: CameraPosition(
+            target: LatLng(data.pickupPosition.x, data.pickupPosition.y),
+            zoom: 14,
+          ),
+        ));
         add(AddMarkerPickup(
             lat: data.pickupPosition.x, lng: data.pickupPosition.y));
         add(AddMarkerDestination(
@@ -191,6 +225,7 @@ class ClientMapTripBloc extends Bloc<ClientMapTripEvent, ClientMapTripState> {
         add(ListenTripNewDriverPosition());
         add(ListenUpdateStatusClientRequestSocketIO());
         _startDriverPositionPollingFallback();
+        _fetchDriverPositionOnce();
       }
     });
 
@@ -215,32 +250,63 @@ class ClientMapTripBloc extends Bloc<ClientMapTripEvent, ClientMapTripState> {
       }
     });
 
-    on<SetDriverLatLng>((event, emit) {
+    on<SetDriverLatLng>((event, emit) async {
       final request = state.clientRequestResponse;
       if (request == null) return;
 
-      LatLng driverPosition = LatLng(event.lat, event.lng);
+      if (_lastDriverLat != null && _lastDriverLng != null) {
+        final moved = distanceBetween(
+          LatLng(_lastDriverLat!, _lastDriverLng!),
+          LatLng(event.lat, event.lng),
+        );
+        if (moved < 0.5) return;
+      }
+      _lastDriverLat = event.lat;
+      _lastDriverLng = event.lng;
+
+      final driverPosition = LatLng(event.lat, event.lng);
       print(
-          'socket trip_new_driver_position received lat=${event.lat} lng=${event.lng}');
-      emit(state.copyWith(driverLatLng: driverPosition));
-      add(AddMarkerDriver(
-          lat: state.driverLatLng!.latitude,
-          lng: state.driverLatLng!.longitude));
+          'driver position update lat=${event.lat} lng=${event.lng}');
+      await _ensureDriverBikeIconLoaded();
+
+      const markerId = MarkerId('driver_marker');
+      final marker = Marker(
+        markerId: markerId,
+        position: driverPosition,
+        rotation: 0,
+        draggable: false,
+        flat: true,
+        icon: _driverBikeIcon,
+        anchor: const Offset(0.5, 0.5),
+        zIndex: 50,
+      );
+
+      emit(state.copyWith(
+        driverLatLng: driverPosition,
+        markers: Map.of(state.markers)..[markerId] = marker,
+      ));
+
       if (!_didFocusDriverInitial) {
         _didFocusDriverInitial = true;
         add(ChangeMapCameraPosition(lat: event.lat, lng: event.lng));
       }
 
       final target = _routeTarget(request);
-      add(AddPolyline(
-        driverLat: state.driverLatLng!.latitude,
-        driverLng: state.driverLatLng!.longitude,
-        destinationLat: target.lat,
-        destinationLng: target.lng,
-      ));
+      final routeKey = '${target.lat}_${target.lng}';
+      if (state.polylines.isEmpty || _routeDestinationKey != routeKey) {
+        _routeDestinationKey = routeKey;
+        add(AddPolyline(
+          driverLat: event.lat,
+          driverLng: event.lng,
+          destinationLat: target.lat,
+          destinationLng: target.lng,
+        ));
+      } else {
+        add(UpdatePolyline(driverPosition: driverPosition));
+      }
+
       add(GetTimeAndDistanceValues(
-          driverLat: state.driverLatLng!.latitude,
-          driverLng: state.driverLatLng!.longitude));
+          driverLat: event.lat, driverLng: event.lng));
       _startOrRefreshEtaTimer();
     });
 
@@ -339,6 +405,8 @@ class ClientMapTripBloc extends Bloc<ClientMapTripEvent, ClientMapTripState> {
               request.pickupPosition.x;
           final driverLng = state.driverLatLng?.longitude ??
               request.pickupPosition.y;
+          _routeDestinationKey =
+              '${request.destinationPosition.x}_${request.destinationPosition.y}';
 
           add(AddPolyline(
             driverLat: driverLat,
@@ -412,54 +480,28 @@ class ClientMapTripBloc extends Bloc<ClientMapTripEvent, ClientMapTripState> {
     if (socket == null) return;
     socket.off(eventName);
     socket.on(eventName, (data) {
-      double? _toDouble(dynamic value) {
-        if (value is num) return value.toDouble();
-        return double.tryParse(value?.toString() ?? '');
-      }
-
       final rawLat = _toDouble(data['lat']);
       final rawLng = _toDouble(data['lng']);
       if (rawLat == null || rawLng == null) return;
 
-      double lat = rawLat;
-      double lng = rawLng;
-      final request = state.clientRequestResponse;
-      if (request != null) {
-        final pickup =
-            LatLng(request.pickupPosition.x, request.pickupPosition.y);
-        final asIs = distanceBetween(LatLng(lat, lng), pickup);
-        final swapped = distanceBetween(LatLng(lng, lat), pickup);
-        if (swapped + 20 < asIs) {
-          final tmp = lat;
-          lat = lng;
-          lng = tmp;
-        }
-      }
-
+      final normalized = _normalizeLatLng(rawLat, rawLng);
       print(
-          'socket $eventName received lat=$lat lng=$lng (raw: $rawLat,$rawLng)');
-      add(SetDriverLatLng(lat: lat, lng: lng));
+          'socket $eventName received lat=${normalized.lat} lng=${normalized.lng} (raw: $rawLat,$rawLng)');
+      add(SetDriverLatLng(lat: normalized.lat, lng: normalized.lng));
     });
+  }
+
+  double? _toDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '');
   }
 
   void _startDriverPositionPollingFallback() {
     _driverPositionPollingTimer?.cancel();
+    _fetchDriverPositionOnce();
     _driverPositionPollingTimer =
-        Timer.periodic(const Duration(seconds: 3), (_) async {
-      final request = state.clientRequestResponse;
-      final idDriver = request?.idDriverAssigned;
-      if (request == null || idDriver == null || idDriver <= 0) {
-        return;
-      }
-      final response =
-          await driversPositionUseCases.getDriverPosition.run(idDriver);
-      if (response is Success<DriverPosition>) {
-        final pos = response.data;
-        print('driver position polling lat=${pos.lat} lng=${pos.lng}');
-        add(SetDriverLatLng(lat: pos.lat, lng: pos.lng));
-      } else if (response is ErrorData) {
-        print('driver position polling error: ${response.message}');
-      }
+        Timer.periodic(const Duration(seconds: 2), (_) {
+      _fetchDriverPositionOnce();
     });
   }
 }

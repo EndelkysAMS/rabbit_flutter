@@ -69,6 +69,9 @@ class _AdminDriversListPageState extends State<AdminDriversListPage> {
         ],
       ),
       body: BlocConsumer<AdminDashboardBloc, AdminDashboardState>(
+        listenWhen: (previous, current) =>
+            previous.responseDeactivateDriver !=
+                current.responseDeactivateDriver,
         listener: (context, state) {
           final deactivate = state.responseDeactivateDriver;
           if (deactivate is Success) {

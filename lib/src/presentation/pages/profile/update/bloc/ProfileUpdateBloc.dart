@@ -112,6 +112,9 @@ class ProfileUpdateBloc extends Bloc<ProfileUpdateEvent, ProfileUpdateState> {
         )
       );
     });
+    on<ClearProfileUpdateResponse>((event, emit) {
+      emit(state.copyWith(clearResponse: true, formKey: formKey));
+    });
   }
 
 }

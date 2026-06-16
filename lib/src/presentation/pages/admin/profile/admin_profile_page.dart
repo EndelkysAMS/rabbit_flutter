@@ -93,6 +93,8 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
         foregroundColor: Colors.white,
       ),
       body: BlocConsumer<AdminDashboardBloc, AdminDashboardState>(
+        listenWhen: (previous, current) =>
+            previous.responseUpdateProfile != current.responseUpdateProfile,
         listener: (context, state) {
           if (state.adminUser != null && !_fieldsInitialized) {
             _syncFieldsFromUser(state.adminUser!);

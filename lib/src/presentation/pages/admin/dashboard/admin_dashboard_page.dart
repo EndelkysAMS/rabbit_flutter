@@ -70,6 +70,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.credit_card),
+              title: const Text('Mi plan'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, 'admin/plan');
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.person),
               title: const Text('Perfil'),
               onTap: () {
@@ -191,10 +199,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   children: [
                     Expanded(
                       child: _QuickActionCard(
-                        icon: Icons.person_remove_alt_1,
-                        title: 'Eliminar conductor',
+                        icon: Icons.credit_card,
+                        title: 'Mi plan',
                         onTap: () =>
-                            Navigator.pushNamed(context, 'admin/drivers/delete'),
+                            Navigator.pushNamed(context, 'admin/plan'),
                       ),
                     ),
                     const SizedBox(width: 10),

@@ -39,17 +39,30 @@ class _ProfileUpdatePageState extends State<ProfileUpdatePage> {
     user = ModalRoute.of(context)?.settings.arguments as User;
     return Scaffold(
       body: BlocListener<ProfileUpdateBloc, ProfileUpdateState>(
+        listenWhen: (previous, current) =>
+            previous.response != current.response,
         listener: (context, state) {
           final response = state.response;
           if (response is ErrorData) {
-            Fluttertoast.showToast(msg: response.message, toastLength: Toast.LENGTH_LONG);
-          }
-          else if (response is Success) {
-            User user = response.data as User;
-            Fluttertoast.showToast(msg: 'Actualizacion exitosa', toastLength: Toast.LENGTH_LONG);
-            context.read<ProfileUpdateBloc>().add(UpdateUserSession(user: user));
-            Future.delayed(Duration(seconds: 1), () {
-              context.read<ProfileInfoBloc>().add(GetUserInfo());
+            Fluttertoast.showToast(
+                msg: response.message, toastLength: Toast.LENGTH_LONG);
+            context
+                .read<ProfileUpdateBloc>()
+                .add(ClearProfileUpdateResponse());
+          } else if (response is Success) {
+            final User updatedUser = response.data as User;
+            Fluttertoast.showToast(
+                msg: 'Actualizacion exitosa', toastLength: Toast.LENGTH_LONG);
+            context
+                .read<ProfileUpdateBloc>()
+                .add(UpdateUserSession(user: updatedUser));
+            context
+                .read<ProfileUpdateBloc>()
+                .add(ClearProfileUpdateResponse());
+            Future.delayed(const Duration(seconds: 1), () {
+              if (context.mounted) {
+                context.read<ProfileInfoBloc>().add(GetUserInfo());
+              }
             });
           }
         },
